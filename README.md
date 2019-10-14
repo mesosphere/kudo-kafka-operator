@@ -1,6 +1,6 @@
 # Run KUDO-Kafka tests
 
-dummy change6
+dummy change7
 
 ## Requirements
 
