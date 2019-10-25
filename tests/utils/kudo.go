@@ -149,6 +149,19 @@ func (c *KubernetesTestClient) LogObjectsOfKinds(namespace string, components []
 	}
 }
 
+func (c *KubernetesTestClient) PrintLogsOfPod(podName, namespace string) {
+	kubectlPath := getKubectlPath()
+	log.Info(fmt.Sprintf("Using kubectl from path: %s", kubectlPath))
+
+	cmd := exec.Command(kubectlPath, "logs", podName, fmt.Sprintf("--namespace=%s", namespace))
+	log.Infoln(fmt.Sprintf("logs %s --namespace=%s", podName, namespace))
+	out, err := cmd.Output()
+	if err != nil {
+		log.Error(string(err.(*exec.ExitError).Stderr))
+	}
+	log.Info(fmt.Sprintf(string(out)))
+}
+
 func (c *KubernetesTestClient) PrintLogsOfNamespace(namespace string) {
 	kubectlPath := getKubectlPath()
 	log.Info(fmt.Sprintf("Using kubectl from path: %s", kubectlPath))

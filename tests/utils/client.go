@@ -89,11 +89,35 @@ func (c *KubernetesTestClient) WaitForPod(name, namespace string, timeoutSeconds
 		select {
 		case <-timeout:
 			c.PrintLogsOfNamespace(namespace)
-			return errors.New(fmt.Sprintf("Timeout while waiting for statefulset [%s/%s] count to be %d", namespace, name))
+			return errors.New(fmt.Sprintf("Timeout while waiting for pod [%s/%s] count to be 1", namespace, name))
 		case <-tick:
 			if KClient.CheckIfPodExists(name, namespace) {
 				return nil
 			}
+		}
+	}
+}
+
+func (c *KubernetesTestClient) WaitForContainerToBeReady(containerName, podName, namespace string, timeoutSeconds time.Duration) error {
+	timeout := time.After(timeoutSeconds * time.Second)
+	tick := time.Tick(500 * time.Millisecond)
+	for {
+		select {
+		case <-timeout:
+			c.PrintLogsOfNamespace(namespace)
+			return errors.New(fmt.Sprintf("Timeout while waiting for container [%s/%s/%s] status to be READY", namespace, containerName, podName))
+		case <-tick:
+			pod := KClient.GetPod(podName, namespace)
+			for _, containerStatus := range pod.Status.ContainerStatuses {
+				// log.Infof("Checking container %s", containerStatus.Name)
+				if containerStatus.Name == containerName {
+					if containerStatus.Ready {
+						log.Infof("Found 1 ready container of name %s in pod %s in %s namespace.", containerName, podName, namespace)
+						return nil
+					}
+				}
+			}
+			log.Infof("Found 0 ready container of name %s in pod %s in %s namespace.", containerName, podName, namespace)
 		}
 	}
 }
