@@ -105,7 +105,7 @@ func (c *KubernetesTestClient) WaitForContainerToBeReady(containerName, podName,
 		select {
 		case <-timeout:
 			c.PrintLogsOfNamespace(namespace)
-			return errors.New(fmt.Sprintf("Timeout while waiting for container [%s/%s/%s] status to be READY", namespace, containerName, podName))
+			return errors.New(fmt.Sprintf("Timeout while waiting for container [%s/%s/%s] status to be READY", namespace, podName, containerName))
 		case <-tick:
 			pod := KClient.GetPod(podName, namespace)
 			for _, containerStatus := range pod.Status.ContainerStatuses {
