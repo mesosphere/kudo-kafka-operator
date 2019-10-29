@@ -113,7 +113,7 @@ func (c *KubernetesTestClient) InstallOperatorFromPath(resourcesAbsoluteDirector
 		resourcesAbsoluteDirectoryPath, fmt.Sprintf("--namespace=%s", namespace)}
 
 	for key, val := range params {
-		install_cmd = append(install_cmd, "-p", fmt.Sprintf("%s=%s",key, val))
+		install_cmd = append(install_cmd, "-p", fmt.Sprintf("%s=%s", key, val))
 	}
 
 	cmd := exec.Command(kubectlPath, install_cmd...)

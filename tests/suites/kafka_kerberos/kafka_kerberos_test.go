@@ -14,11 +14,10 @@ import (
 
 var (
 	customNamespace = "kerberos-ns"
-	krb5Client = &utils.KDCClient{
+	krb5Client      = &utils.KDCClient{
 		Namespace: customNamespace,
 	}
 )
-
 
 var _ = Describe("KafkaTest", func() {
 	Describe("[Kafka Kerberos Checks]", func() {
