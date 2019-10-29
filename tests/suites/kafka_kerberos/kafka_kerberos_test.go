@@ -12,8 +12,13 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var customNamespace = "kerberos-ns"
-var krb5Client = &utils.KDCClient{}
+var (
+	customNamespace = "kerberos-ns"
+	krb5Client = &utils.KDCClient{
+		Namespace: customNamespace,
+	}
+)
+
 
 var _ = Describe("KafkaTest", func() {
 	Describe("[Kafka Kerberos Checks]", func() {
@@ -56,7 +61,6 @@ var _ = Describe("KafkaTest", func() {
 var _ = BeforeSuite(func() {
 	utils.TearDown(customNamespace)
 	utils.KClient.CreateNamespace(customNamespace, false)
-	krb5Client.SetNamespace(customNamespace)
 	krb5Client.Deploy()
 	utils.SetupWithKerberos(customNamespace)
 })

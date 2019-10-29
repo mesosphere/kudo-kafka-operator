@@ -75,11 +75,9 @@ func (c *KubernetesTestClient) createSecret(name string, data []string, namespac
 		},
 	})
 	_, err := c.CoreV1().Secrets(namespace).List(metav1.ListOptions{})
-	// secrets, err := c.CoreV1().Secrets(namespace).List(metav1.ListOptions{})
 	if err != nil {
 		log.Warningf("%v", err)
 	}
-	// log.Infoln(secrets)
 }
 
 func (c *KubernetesTestClient) WaitForPod(name, namespace string, timeoutSeconds time.Duration) error {
@@ -109,7 +107,6 @@ func (c *KubernetesTestClient) WaitForContainerToBeReady(containerName, podName,
 		case <-tick:
 			pod := KClient.GetPod(podName, namespace)
 			for _, containerStatus := range pod.Status.ContainerStatuses {
-				// log.Infof("Checking container %s", containerStatus.Name)
 				if containerStatus.Name == containerName {
 					if containerStatus.Ready {
 						log.Infof("Found 1 ready container of name %s in pod %s in %s namespace.", containerName, podName, namespace)
