@@ -11,7 +11,7 @@ import (
 // KDCClient Struct defining the KDC Client
 type KDCClient struct {
 	pod       *v1.Pod
-	namespace string
+	Namespace string
 }
 
 const (
@@ -19,9 +19,9 @@ const (
 	CONTAINER_NAME = "kdc"
 )
 
-// setNamespace Set namespace
-func (k *KDCClient) SetNamespace(namespace string) {
-	k.namespace = namespace
+// setNamespace Set Namespace
+func (k *KDCClient) SetNamespace(Namespace string) {
+	k.Namespace = Namespace
 }
 
 // deployPod Use it to deploy the kdc server
@@ -29,8 +29,8 @@ func (k *KDCClient) Deploy() {
 	repoRoot, exists := os.LookupEnv("REPO_ROOT")
 
 	if exists {
-		Create(repoRoot+"/tests/suites/kafka_kerberos/resources/kdc.yaml", k.namespace)
-		KClient.WaitForPod("kdc", k.namespace, 240)
+		Create(repoRoot+"/tests/suites/kafka_kerberos/resources/kdc.yaml", k.Namespace)
+		KClient.WaitForPod("kdc", k.Namespace, 240)
 	} else {
 		log.Warningf("Environment variable REPO_ROOT is not set!")
 	}
@@ -44,8 +44,8 @@ func (k *KDCClient) CreateKeytabSecret(principals []string, serviceName string, 
 		"rm /kdc/" + serviceName + ".keytab;" +
 		"cat /kdc/" + serviceName + "-principals.txt | while read line; do /usr/sbin/kadmin -l ext -k /kdc/" + serviceName + ".keytab $line; done;"
 
-	stdout, _ := KClient.ExecInPod(k.namespace, POD_NAME, CONTAINER_NAME, []string{"/bin/sh", "-c", command})
-	stdout, _ = KClient.ExecInPod(k.namespace, POD_NAME, CONTAINER_NAME, []string{"/bin/sh", "-c", "cat /kdc/" + serviceName + ".keytab | base64 -w 0"})
+	stdout, _ := KClient.ExecInPod(k.Namespace, POD_NAME, CONTAINER_NAME, []string{"/bin/sh", "-c", command})
+	stdout, _ = KClient.ExecInPod(k.Namespace, POD_NAME, CONTAINER_NAME, []string{"/bin/sh", "-c", "cat /kdc/" + serviceName + ".keytab | base64 -w 0"})
 
-	KClient.createSecret(secretName, []string{"kafka.keytab", stdout}, k.namespace)
+	KClient.createSecret(secretName, []string{"kafka.keytab", stdout}, k.Namespace)
 }
