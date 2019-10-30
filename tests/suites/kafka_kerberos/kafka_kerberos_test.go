@@ -23,11 +23,11 @@ var _ = Describe("KafkaTest", func() {
 	Describe("[Kafka Kerberos Checks]", func() {
 		Context("kerberos-ns installation", func() {
 			It("kdc service should have count 1", func() {
-				utils.KClient.WaitForContainerToBeReady("kdc", "kdc", customNamespace, 200)
+				Expect(utils.KClient.WaitForContainerToBeReady("kdc", "kdc", customNamespace, 200)).To(BeNil())
 				Expect(utils.KClient.CheckIfPodExists("kdc", customNamespace)).To(Equal(true))
 				Expect(utils.KClient.GetServicesCount("kdc-service", customNamespace)).To(Equal(1))
-				utils.KClient.PrintLogsOfPod("kdc", customNamespace)
-				krb5Client.CreateKeytabSecret(utils.GetKafkaKeyabs(customNamespace), "kafka", "base64-kafka-keytab-secret")
+				utils.KClient.PrintLogsOfPod("kdc", "kdc", customNamespace)
+				Expect(krb5Client.CreateKeytabSecret(utils.GetKafkaKeyabs(customNamespace), "kafka", "base64-kafka-keytab-secret")).To(BeNil())
 			})
 			It("Kafka and Zookeeper statefulset should have 3 replicas with status READY", func() {
 				err := utils.KClient.WaitForStatefulSetReadyReplicasCount(DefaultZkStatefulSetName, customNamespace, 3, 240)
@@ -60,12 +60,13 @@ var _ = Describe("KafkaTest", func() {
 var _ = BeforeSuite(func() {
 	utils.TearDown(customNamespace)
 	utils.KClient.CreateNamespace(customNamespace, false)
-	krb5Client.Deploy()
+	Expect(krb5Client.Deploy()).To(BeNil())
 	utils.SetupWithKerberos(customNamespace)
 })
 
 var _ = AfterSuite(func() {
 	utils.TearDown(customNamespace)
+	Expect(krb5Client.TearDown()).To(BeNil())
 	utils.KClient.DeleteNamespace(customNamespace)
 })
 

@@ -16,6 +16,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"k8s.io/api/apps/v1beta2"
 	v1 "k8s.io/api/core/v1"
+	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -87,7 +88,7 @@ func (c *KubernetesTestClient) WaitForPod(name, namespace string, timeoutSeconds
 		select {
 		case <-timeout:
 			c.PrintLogsOfNamespace(namespace)
-			return errors.New(fmt.Sprintf("Timeout while waiting for pod [%s/%s] count to be 1", namespace, name))
+			return fmt.Errorf("Timeout while waiting for pod [%s/%s] count to be 1", namespace, name)
 		case <-tick:
 			if KClient.CheckIfPodExists(name, namespace) {
 				return nil
@@ -103,9 +104,16 @@ func (c *KubernetesTestClient) WaitForContainerToBeReady(containerName, podName,
 		select {
 		case <-timeout:
 			c.PrintLogsOfNamespace(namespace)
-			return errors.New(fmt.Sprintf("Timeout while waiting for container [%s/%s/%s] status to be READY", namespace, podName, containerName))
+			return fmt.Errorf("Timeout while waiting for container [%s/%s/%s] status to be READY", namespace, podName, containerName)
 		case <-tick:
-			pod := KClient.GetPod(podName, namespace)
+			pod, err := KClient.GetPod(podName, namespace)
+			if kerrors.IsNotFound(err) {
+				log.Warningf("Found 0 pods with name %s in namespace %s .", podName, namespace)
+				continue
+			} else if err != nil {
+				log.Warningf("%v", err)
+				continue
+			}
 			for _, containerStatus := range pod.Status.ContainerStatuses {
 				if containerStatus.Name == containerName {
 					if containerStatus.Ready {
@@ -152,22 +160,20 @@ func (c *KubernetesTestClient) WaitForStatefulSetReadyReplicasCount(name, namesp
 }
 
 func (c *KubernetesTestClient) CheckIfPodExists(name, namespace string) bool {
-	pod := c.GetPod(name, namespace)
-	if pod == nil {
+	_, err := c.GetPod(name, namespace)
+	if kerrors.IsNotFound(err) {
 		log.Warningf("Found 0 pods with name %s in namespace %s .", name, namespace)
+		return false
+	} else if err != nil {
+		log.Warningf("%v", err)
 		return false
 	}
 	log.Infof("Found 1 pod with name %s in %s namespace", name, namespace)
 	return true
 }
 
-func (c *KubernetesTestClient) GetPod(name, namespace string) *v1.Pod {
-	pod, err := c.CoreV1().Pods(namespace).Get(name, metav1.GetOptions{})
-	if err != nil {
-		log.Warningf("%v", err)
-		return nil
-	}
-	return pod
+func (c *KubernetesTestClient) GetPod(name, namespace string) (*v1.Pod, error) {
+	return c.CoreV1().Pods(namespace).Get(name, metav1.GetOptions{})
 }
 
 func (c *KubernetesTestClient) GetStatefulSetCount(name, namespace string) int {
