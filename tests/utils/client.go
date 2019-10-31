@@ -284,6 +284,22 @@ func Retry(attempts int, sleep time.Duration, condition string, f func() (string
 	return resp, fmt.Errorf("after %d attempts, last error: %s", attempts, err)
 }
 
+func (c *KubernetesTestClient) DeletePVCs(containsString string) error {
+	pvcs, err := c.CoreV1().PersistentVolumeClaims("").List(metav1.ListOptions{})
+	if err != nil {
+		return err
+	}
+	for _, pvc := range pvcs.Items {
+		if strings.Contains(pvc.GetName(), containsString) {
+			err = c.CoreV1().PersistentVolumeClaims(pvc.GetNamespace()).Delete(pvc.GetName(), &metav1.DeleteOptions{})
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 func (c *KubernetesTestClient) ExecInPod(namespace string, podName string, containerName string, commands []string) (string, error) {
 	req := c.CoreV1().RESTClient().Post().
 		Namespace(namespace).

@@ -66,12 +66,14 @@ var _ = Describe("KafkaStorage", func() {
 
 var _ = BeforeSuite(func() {
 	utils.TearDown(customNamespace)
+	Expect(utils.DeletePVCs("data-dir")).To(BeNil())
 	utils.KClient.CreateNamespace(customNamespace, false)
 	utils.Setup(customNamespace)
 })
 
 var _ = AfterSuite(func() {
 	utils.TearDown(customNamespace)
+	Expect(utils.DeletePVCs("data-dir")).To(BeNil())
 	utils.KClient.DeleteNamespace(customNamespace)
 })
 
