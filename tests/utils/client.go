@@ -241,6 +241,7 @@ func Setup(namespace string) {
 	InstallKudoOperator(namespace, KAFKA_INSTANCE, KAFKA_FRAMEWORK_DIR_ENV, map[string]string{
 		"BROKER_MEM":  "1Gi",
 		"BROKER_CPUS": "0.25",
+		"METRICS_ENABLED": "true",
 	})
 	KClient.WaitForStatefulSetCount(suites.DefaultKafkaStatefulSetName, namespace, 3, 30)
 }

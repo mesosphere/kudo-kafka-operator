@@ -161,6 +161,20 @@ func (c *KafkaClient) createTopic(podName, container, topicName, replicationAssi
 	return c.ExecInPod(*c.conf.Namespace, podName, container, command)
 }
 
+func (c *KafkaClient) GetMetricsEndpointOutput(podName, container string) (string, error) {
+	return Retry(*c.conf.Retry, *c.conf.RetryInterval, "Metrics Output", func() (string, error) {
+		return c.getMetricsEndpointOutput(podName, container)
+	})
+}
+
+func (c *KafkaClient) getMetricsEndpointOutput(podName, container string) (string, error) {
+	command := []string{
+		"bash", "-c", fmt.Sprintf("curl -v --silent localhost:9094 2>&1"),
+	}
+	logrus.Println(command)
+	return c.ExecInPod(*c.conf.Namespace, podName, container, command)
+}
+
 func (c *KafkaClient) WaitForBrokersToBeRegisteredWithService(podName, container string, timeoutSeconds time.Duration) error {
 	timeout := time.After(timeoutSeconds * time.Second)
 	tick := time.Tick(3 * time.Second)
