@@ -28,7 +28,7 @@ var _ = Describe("KafkaTest", func() {
 			})
 			It("Check for metrics endpoint", func() {
 				kafkaClient := utils.NewKafkaClient(utils.KClient, &utils.KafkaClientConfiguration{
-					Namespace:       utils.String(customNamespace),
+					Namespace: utils.String(customNamespace),
 				})
 				out, err := kafkaClient.GetMetricsEndpointOutput(GetBrokerPodName(0), DefaultContainerName)
 				Expect(err).To(BeNil())
