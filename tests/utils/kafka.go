@@ -85,7 +85,8 @@ func (c *KafkaClient) WriteInTopic(podName, container, topicName, message string
 }
 
 func (c *KafkaClient) writeInTopic(podName, container, topicName, message string) (string, error) {
-	port, err := "", error(nil)
+	var port string
+	var err error
 	if c.conf.TLSEnabled {
 		port, err = c.kClient.GetParamForKudoInstance(*c.conf.InstanceName, *c.conf.Namespace, "BROKER_PORT_TLS")
 	} else {
@@ -118,7 +119,8 @@ func (c *KafkaClient) ReadFromTopic(podName, container, topicName, message strin
 }
 
 func (c *KafkaClient) readFromTopic(podName, container, topicName string) (string, error) {
-	port, err := "", error(nil)
+	var port string
+	var err error
 	if c.conf.TLSEnabled {
 		port, err = c.kClient.GetParamForKudoInstance(*c.conf.InstanceName, *c.conf.Namespace, "BROKER_PORT_TLS")
 	} else {
