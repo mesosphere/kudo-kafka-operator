@@ -100,7 +100,7 @@ var _ = Describe("KafkaTest", func() {
 				Expect(output).To(ContainSubstring("Address 1:"))
 			})
 			It("Check for metrics endpoint", func() {
-				out, err := kafkaClient.ExecInPod(customNamespace, GetBrokerPodName(0), DefaultContainerName, []string{"curl -v --silent localhost:9094 2>&1"})
+				out, err := kafkaClient.ExecInPod(customNamespace, GetBrokerPodName(0), DefaultContainerName, []string{"bash", "-c", "curl -v --silent localhost:9094 2>&1"})
 				Expect(err).To(BeNil())
 				Expect(out).To(ContainSubstring("kafka_controller_ControllerStats_LeaderElectionRateAndTimeMs"))
 			})
