@@ -39,7 +39,7 @@ var _ = Describe("[Kafka KafkaService]", func() {
 			expectedExternalDNS                 string
 		}{
 			{
-				name: "Type LoadBalancer",
+				name: "Type LoadBalancer AWS",
 				svc: &v1.ServiceList{
 					Items: []v1.Service{
 						{
@@ -66,6 +66,36 @@ var _ = Describe("[Kafka KafkaService]", func() {
 				expectedAdvertisedListeners:         "EXTERNAL_INGRESS://aws.kafka.dns-kafka-kafka-0:9097",
 				expectedListeners:                   "EXTERNAL_INGRESS://0.0.0.0:9097",
 				expectedExternalDNS:                 "aws.kafka.dns-kafka-kafka-0",
+				expectedListenerSecurityProtocolMap: "EXTERNAL_INGRESS:PLAINTEXT",
+			},
+			{
+				name: "Type LoadBalancer GCE",
+				svc: &v1.ServiceList{
+					Items: []v1.Service{
+						{
+							ObjectMeta: metav1.ObjectMeta{
+								Name:      "kafka-kafka-0-external",
+								Namespace: v1.NamespaceDefault,
+							},
+							Spec: v1.ServiceSpec{
+								Type: v1.ServiceTypeLoadBalancer,
+							},
+							Status: v1.ServiceStatus{
+								LoadBalancer: v1.LoadBalancerStatus{
+									Ingress: []v1.LoadBalancerIngress{
+										{
+											IP: "30.0.0.1",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				node:                                &v1.Node{},
+				expectedAdvertisedListeners:         "EXTERNAL_INGRESS://30.0.0.1:9097",
+				expectedListeners:                   "EXTERNAL_INGRESS://0.0.0.0:9097",
+				expectedExternalDNS:                 "30.0.0.1",
 				expectedListenerSecurityProtocolMap: "EXTERNAL_INGRESS:PLAINTEXT",
 			},
 			{

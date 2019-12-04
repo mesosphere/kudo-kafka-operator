@@ -6,6 +6,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/avast/retry-go"
@@ -125,13 +126,19 @@ func (c *KafkaService) writeAdvertisedListenersToPath(ingresses []v1.LoadBalance
 		return err
 	}
 	dataWriter := bufio.NewWriter(file)
+	var port string
+	if c.Port == 0 {
+		port = c.Env.GetExternalIngressPort()
+	} else {
+		port = strconv.FormatInt(int64(c.Port), 10)
+	}
 
 	for _, ingress := range ingresses {
 		if len(ingress.Hostname) > 0 {
-			dataWriter.WriteString(fmt.Sprintf("%s://%s:%s", EXTERNAL_INGRESS_PROTOCOL_NAME, ingress.Hostname, c.Env.GetExternalIngressPort()))
+			dataWriter.WriteString(fmt.Sprintf("%s://%s:%s", EXTERNAL_INGRESS_PROTOCOL_NAME, ingress.Hostname, port))
 		}
 		if len(ingress.IP) > 0 {
-			dataWriter.WriteString(fmt.Sprintf("%s://%s:%d", EXTERNAL_INGRESS_PROTOCOL_NAME, ingress.IP, c.Port))
+			dataWriter.WriteString(fmt.Sprintf("%s://%s:%s", EXTERNAL_INGRESS_PROTOCOL_NAME, ingress.IP, port))
 		}
 	}
 	dataWriter.Flush()
@@ -147,12 +154,19 @@ func (c *KafkaService) writeListenersToPath(ingresses []v1.LoadBalancerIngress, 
 		return err
 	}
 	datawriter := bufio.NewWriter(file)
+	var port string
+	if c.Port == 0 {
+		port = c.Env.GetExternalIngressPort()
+	} else {
+		port = strconv.FormatInt(int64(c.Port), 10)
+	}
+
 	for _, ingress := range ingresses {
 		if len(ingress.Hostname) > 0 {
-			datawriter.WriteString(fmt.Sprintf("%s://0.0.0.0:%s", EXTERNAL_INGRESS_PROTOCOL_NAME, c.Env.GetExternalIngressPort()))
+			datawriter.WriteString(fmt.Sprintf("%s://0.0.0.0:%s", EXTERNAL_INGRESS_PROTOCOL_NAME, port))
 		}
 		if len(ingress.IP) > 0 {
-			datawriter.WriteString(fmt.Sprintf("%s://0.0.0.0:%d", EXTERNAL_INGRESS_PROTOCOL_NAME, c.Port))
+			datawriter.WriteString(fmt.Sprintf("%s://0.0.0.0:%s", EXTERNAL_INGRESS_PROTOCOL_NAME, port))
 		}
 	}
 
