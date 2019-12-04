@@ -5,8 +5,9 @@
 package mocks
 
 import (
-	gomock "github.com/golang/mock/gomock"
-	reflect "reflect"
+	"github.com/golang/mock/gomock"
+
+	"reflect"
 )
 
 // MockService is a mock of Service interface

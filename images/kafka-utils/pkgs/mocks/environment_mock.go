@@ -5,8 +5,9 @@
 package mocks
 
 import (
-	gomock "github.com/golang/mock/gomock"
-	reflect "reflect"
+	"github.com/golang/mock/gomock"
+
+	"reflect"
 )
 
 // MockEnvironment is a mock of Environment interface
