@@ -26,6 +26,7 @@ const (
 	EXTERNAL_LISTENERS                        = "external.listeners"
 	EXTERNAL_ADVERTISED_LISTENER_SECURITY_MAP = "external.listener.security.protocol.map"
 	EXTERNAL_DNS                              = "external.dns"
+	EXTERNAL_INGRESS_PROTOCOL_NAME            = "EXTERNAL_INGRESS"
 )
 
 type Service interface {
@@ -131,10 +132,10 @@ func (c *KafkaService) writeAdvertisedListenersToPath(ingresses []v1.LoadBalance
 
 	for _, ingress := range ingresses {
 		if len(ingress.Hostname) > 0 {
-			dataWriter.WriteString(fmt.Sprintf("EXTERNAL_INGRESS://%s:%s", ingress.Hostname, c.Env.GetExternalIngressPort()))
+			dataWriter.WriteString(fmt.Sprintf("%s://%s:%s", EXTERNAL_INGRESS_PROTOCOL_NAME, ingress.Hostname, c.Env.GetExternalIngressPort()))
 		}
 		if len(ingress.IP) > 0 {
-			dataWriter.WriteString(fmt.Sprintf("EXTERNAL_INGRESS://%s:%d", ingress.IP, c.Port))
+			dataWriter.WriteString(fmt.Sprintf("%s://%s:%d", EXTERNAL_INGRESS_PROTOCOL_NAME, ingress.IP, c.Port))
 		}
 	}
 	dataWriter.Flush()
@@ -152,10 +153,10 @@ func (c *KafkaService) writeListenersToPath(ingresses []v1.LoadBalancerIngress, 
 	datawriter := bufio.NewWriter(file)
 	for _, ingress := range ingresses {
 		if len(ingress.Hostname) > 0 {
-			datawriter.WriteString("EXTERNAL_INGRESS://0.0.0.0:" + c.Env.GetExternalIngressPort())
+			datawriter.WriteString(fmt.Sprintf("%s://0.0.0.0:%s", EXTERNAL_INGRESS_PROTOCOL_NAME, c.Env.GetExternalIngressPort()))
 		}
 		if len(ingress.IP) > 0 {
-			datawriter.WriteString(fmt.Sprintf("EXTERNAL_INGRESS://0.0.0.0:%d", c.Port))
+			datawriter.WriteString(fmt.Sprintf("%s://0.0.0.0:%d", EXTERNAL_INGRESS_PROTOCOL_NAME, c.Port))
 		}
 	}
 
@@ -224,7 +225,7 @@ func (c *KafkaService) getSecurityProtocolMap() string {
 				log.Infoln("cannot detect the security protocol type from:  ", securityProtocolMap)
 			}
 			if securityProtocolMapValues[0] == "INTERNAL" {
-				return fmt.Sprintf("%s:%s", "EXTERNAL_INGRESS", securityProtocolMapValues[1])
+				return fmt.Sprintf("%s:%s", EXTERNAL_INGRESS_PROTOCOL_NAME, securityProtocolMapValues[1])
 			}
 		}
 	}

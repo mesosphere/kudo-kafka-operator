@@ -6,8 +6,12 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const (
+	KAKFA_HOME = "/opt/kafka"
+)
+
 func main() {
-	log.Infoln("Running Kafka utils...")
+	log.Infoln("Running kafka-utils...")
 
 	k8sClient, err := client.GetKubernetesClient()
 	if err != nil {
@@ -17,5 +21,11 @@ func main() {
 		Client: k8sClient,
 		Env:    &service.EnvironmentImpl{},
 	}
-	kakfaService.WriteIngressToPath("/opt/kafka")
+	log.Infoln("Running kafka-utils...")
+	err = kakfaService.WriteIngressToPath(KAKFA_HOME)
+	if err != nil {
+		log.Errorf("could not run the kafka utils bootstrap: %v", err)
+	} else {
+		log.Infoln("Finished the kafka-utils bootstrap.")
+	}
 }
