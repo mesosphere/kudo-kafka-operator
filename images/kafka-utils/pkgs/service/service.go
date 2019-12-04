@@ -9,15 +9,11 @@ import (
 	"strings"
 
 	"github.com/avast/retry-go"
-
 	v1 "k8s.io/api/core/v1"
 
-	"k8s.io/apimachinery/pkg/fields"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	log "github.com/sirupsen/logrus"
-
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/client-go/kubernetes"
 )
 
