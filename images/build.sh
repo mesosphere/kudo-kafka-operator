@@ -7,7 +7,7 @@ function print_help() {
   echo
   echo "OPTIONS:"
   echo "--push             push the recently build image"
-  echo "--image            docker image to build. valid options are '-image=kafka' and '-image=cruise-control'"
+  echo "--image=IMAGE      docker image to build. valid options are '--image=kafka' and '--image=cruise-control'"
   echo
 }
 
