@@ -64,7 +64,7 @@ if [[ "${PUSH_IMAGE}" == "true" ]]; then
     docker push mesosphere/cruise-control:${CRUISE_CONTROL_TAG_VERSION}
   fi
   if [[ "${BUILD_KAFKA}" == "true" ]]; then
-    docker push mesosphere/kafka:${KAKFA_TAG_VERSION}
+    docker push mesosphere/kafka:${KAFKA_TAG_VERSION}
   fi
 else
   echo "Image built successfully."
