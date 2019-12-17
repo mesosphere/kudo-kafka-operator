@@ -15,7 +15,7 @@ RUN wget https://downloads.mesosphere.com/java/openjdk-jre-8u212b03-hotspot-linu
     tar -xvvf /srv/openjdk-jre-8u212b03-hotspot-linux-x64.tar.gz --strip-components=1 -C /srv/jdk
 
 FROM openjdk:8-jdk as cruise-control
-RUN git clone --branch 2.0.77 https://github.com/linkedin/cruise-control.git && cd cruise-control/
+RUN git clone --branch 2.0.77 https://github.com/linkedin/cruise-control.git
 WORKDIR cruise-control
 RUN ./gradlew jar --warning-mode=all
 
