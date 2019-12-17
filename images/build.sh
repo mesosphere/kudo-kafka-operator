@@ -11,6 +11,8 @@ function print_help() {
   echo
 }
 
+source versions.sh
+
 PUSH_IMAGE="false"
 IMAGE_NAME="all"
 for arg in "$@"
@@ -50,22 +52,19 @@ cruise-control)
 esac
 
 if [[ "${BUILD_KAFKA}" == "true" ]]; then
-  source kafka/docker-version.sh
-  docker image build --build-arg KAFKA_VERSION=${KAFKA_BASE_TECH_VERSION} -t mesosphere/kafka:${KAFKA_DOCKER_IMAGE_VERSION}-${KAFKA_BASE_TECH_VERSION} ./kafka
+  docker image build --build-arg KAFKA_VERSION=${KAFKA_VERSION} -t mesosphere/kafka:${KAKFA_TAG_VERSION} ./kafka
 fi
 if [[ "${BUILD_CRUISE}" == "true" ]]; then
-  source cruise-control/docker-version.sh
   docker image build --build-arg CRUISE_CONTROL_VERSION=${CRUISE_CONTROL_VERSION} --build-arg CRUISE_CONTROL_UI_VERSION=${CRUISE_CONTROL_UI_VERSION} \
-    -t mesosphere/cruise-control:${CRUISE_CONTROL_DOCKER_IMAGE_VERSION} ./cruise-control
+    -t mesosphere/cruise-control:${CRUISE_CONTROL_TAG_VERSION} ./cruise-control
 fi
-
 
 if [[ "${PUSH_IMAGE}" == "true" ]]; then
   if [[ "${BUILD_CRUISE}" == "true" ]]; then
-    docker push mesosphere/cruise-control:${CRUISE_CONTROL_DOCKER_IMAGE_VERSION}
+    docker push mesosphere/cruise-control:${CRUISE_CONTROL_TAG_VERSION}
   fi
   if [[ "${BUILD_KAFKA}" == "true" ]]; then
-    docker push mesosphere/kafka:${KAFKA_DOCKER_IMAGE_VERSION}-${KAFKA_BASE_TECH_VERSION}
+    docker push mesosphere/kafka:${KAKFA_TAG_VERSION}
   fi
 else
   echo "Image built successfully."
