@@ -73,6 +73,26 @@ func (c *KubernetesTestClient) GetParamForKudoFrameworkVersion(name, namespace, 
 	return "", nil
 }
 
+func (c *KubernetesTestClient) GetOperatorVersionForKudoInstance(name, namespace string) (string, error) {
+	instancesClient := kudoClient.KudoV1beta1().Instances(namespace)
+	instance, err := instancesClient.Get(name, metav1.GetOptions{})
+	if err != nil {
+		log.Errorf("error getting kudo instance in namespace kubernetes client: %v", err)
+		return "", err
+	}
+
+	operatorVersion, err := kudoClient.KudoV1beta1().OperatorVersions(namespace).Get(instance.Spec.OperatorVersion.Name, metav1.GetOptions{})
+
+	if err != nil {
+		log.Errorf("error getting kudo opeartor version in namespace kubernetes client: %v", err)
+		return "", err
+	}
+
+	log.Infof("Version: %s for %s", operatorVersion.Spec.Version, name)
+
+	return operatorVersion.Spec.Version, nil
+}
+
 func (c *KubernetesTestClient) UpdateInstancesCount(name, namespace string, count int) error {
 	_, err := Retry(3, 0*time.Second, EMPTY_CONDITION, func() (string, error) {
 		return updateInstancesCount(name, namespace, count)
@@ -105,12 +125,42 @@ func updateInstancesCount(name, namespace string, count int) (string, error) {
 }
 
 func (c *KubernetesTestClient) InstallOperatorFromPath(resourcesAbsoluteDirectoryPath, namespace, name string, params map[string]string) {
+	log.Info(fmt.Sprintf("Installing framework from PATH: %s", resourcesAbsoluteDirectoryPath))
+	c.installOrUpgradeOperator("install", namespace, resourcesAbsoluteDirectoryPath, name, "", params)
+}
+
+func (c *KubernetesTestClient) InstallOperatorFromRepository(namespace, operatorName, instanceName, version string, params map[string]string) {
+	c.installOrUpgradeOperator("install", namespace, operatorName, instanceName, version, params)
+}
+
+func (c *KubernetesTestClient) UpgardeInstanceFromPath(resourcesAbsoluteDirectoryPath, namespace, name string, params map[string]string) {
+	log.Info(fmt.Sprintf("Upgrading framework from PATH: %s", resourcesAbsoluteDirectoryPath))
+	c.installOrUpgradeOperator("upgrade", namespace, resourcesAbsoluteDirectoryPath, name, "", params)
+}
+
+func (c *KubernetesTestClient) UpgardeInstanceFromRepository(namespace, operatorName, instanceName, version string, params map[string]string) {
+	c.installOrUpgradeOperator("upgrade", namespace, operatorName, instanceName, version, params)
+}
+
+func (c *KubernetesTestClient) installOrUpgradeOperator(operation, namespace, operatorNameOrPath, instanceName, version string, params map[string]string) {
+	if operation != "install" && operation != "upgrade" {
+		log.Error(fmt.Sprintf("Operation not recognized: %s", operation))
+		return
+	}
 	kubectlPath := getKubectlPath()
 	log.Info(fmt.Sprintf("Using kubectl from path: %s", kubectlPath))
-	log.Info(fmt.Sprintf("Installing framework from PATH: %s", resourcesAbsoluteDirectoryPath))
 
-	install_cmd := []string{"kudo", "install", fmt.Sprintf("--instance=%s", name),
-		resourcesAbsoluteDirectoryPath, fmt.Sprintf("--namespace=%s", namespace)}
+	install_cmd := []string{
+		"kudo",
+		operation,
+		operatorNameOrPath,
+		fmt.Sprintf("--instance=%s", instanceName),
+		fmt.Sprintf("--namespace=%s", namespace),
+	}
+
+	if version != "" {
+		install_cmd = append(install_cmd, fmt.Sprintf("--version=%s", version))
+	}
 
 	for key, val := range params {
 		install_cmd = append(install_cmd, "-p", fmt.Sprintf("%s=%s", key, val))
