@@ -1,16 +1,15 @@
 package utils
 
 import (
-	"errors"
 	"fmt"
 	"os/exec"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/kudobuilder/kudo/pkg/apis/kudo/v1beta1"
 	"github.com/kudobuilder/kudo/pkg/client/clientset/versioned"
 	log "github.com/sirupsen/logrus"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -37,35 +36,20 @@ func (c *KubernetesTestClient) GetParamForKudoInstance(name, namespace, param st
 	}
 
 	if len(instance.Spec.Parameters[param]) == 0 {
-		return c.GetParamForKudoFrameworkVersion(name, namespace, param)
+		return c.GetParamForKudoFrameworkVersion(instance.Spec.OperatorVersion, namespace, param)
 	}
 	return instance.Spec.Parameters[param], nil
 }
 
-func (c *KubernetesTestClient) GetParamForKudoFrameworkVersion(name, namespace, param string) (string, error) {
-	frameworkVersionClient := kudoClient.KudoV1beta1().OperatorVersions(namespace)
-	operatorVersionsList, err := frameworkVersionClient.List(metav1.ListOptions{})
-	kafkaFrameworkVersion := ""
-	for _, value := range operatorVersionsList.Items {
-		if strings.Contains(value.Name, defaultInstanceName) && len(kafkaFrameworkVersion) > 0 {
-			return "", errors.New("unsupported: two versions of Kafka OperatorVersion")
-		}
-		if strings.Contains(value.Name, defaultInstanceName) {
-			kafkaFrameworkVersion = value.Name
-		}
-	}
-	if kafkaFrameworkVersion == "" {
-		log.Errorf("error finding a OperatorVersion for Kafka")
-		return "", errors.New("no OperatorVersion for Kafka found")
-	}
-	log.Infof("Using OperatorVersion %s\n", kafkaFrameworkVersion)
-	version, err := frameworkVersionClient.Get(kafkaFrameworkVersion, metav1.GetOptions{})
+func (c *KubernetesTestClient) GetParamForKudoFrameworkVersion(ref corev1.ObjectReference, namespace, param string) (string, error) {
+	operatorVersion, err := kudoClient.KudoV1beta1().OperatorVersions(namespace).Get(ref.Name, metav1.GetOptions{})
+
 	if err != nil {
-		log.Errorf("error getting kudo instance in namespace kubernetes client: %v", err)
+		log.Errorf("error getting kudo opeartor version in namespace kubernetes client: %v", err)
 		return "", err
 	}
 
-	for _, value := range version.Spec.Parameters {
+	for _, value := range operatorVersion.Spec.Parameters {
 		if value.Name == param {
 			return *value.Default, nil
 		}
@@ -183,6 +167,34 @@ func (c *KubernetesTestClient) DeleteInstance(namespace, name string) {
 		log.Error(string(err.(*exec.ExitError).Stderr))
 	}
 	log.Info(fmt.Sprintf("Response: %s", string(out)))
+}
+
+func (c *KubernetesTestClient) WaitForReadyStatus(name, namespace string, timeoutSeconds time.Duration) error {
+	timeout := time.After(timeoutSeconds * time.Second)
+	tick := time.Tick(2 * time.Second)
+	for {
+		select {
+		case <-timeout:
+			c.PrintLogsOfNamespace(namespace)
+			return fmt.Errorf("Timeout while waiting for %s/%s plan status to be Complete", namespace, name)
+		case <-tick:
+			status, _ := c.GetPlanStatusForInstance(name, namespace)
+			log.Info(fmt.Sprintf("Got status %s of instance %s in namespace %s", status, name, namespace))
+			if status == v1beta1.ExecutionComplete {
+				return nil
+			}
+		}
+	}
+}
+
+func (c *KubernetesTestClient) GetPlanStatusForInstance(name, namespace string) (v1beta1.ExecutionStatus, error) {
+	instancesClient := kudoClient.KudoV1beta1().Instances(namespace)
+	instance, err := instancesClient.Get(name, metav1.GetOptions{})
+	if err != nil {
+		log.Errorf("error getting kudo instance in namespace %s for instance %s kubernetes client: %v", namespace, name, err)
+		return "", err
+	}
+	return instance.Status.AggregatedStatus.Status, nil
 }
 
 func (c *KubernetesTestClient) LogObjectsOfKinds(namespace string, components []string) {
