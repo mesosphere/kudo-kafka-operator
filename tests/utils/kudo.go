@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/mesosphere/kudo-kafka-operator/tests/suites"
+
 	"github.com/kudobuilder/kudo/pkg/apis/kudo/v1beta1"
 	"github.com/kudobuilder/kudo/pkg/client/clientset/versioned"
 	log "github.com/sirupsen/logrus"
@@ -143,7 +145,7 @@ func (c *KubernetesTestClient) installOrUpgradeOperator(operation, namespace, op
 	}
 
 	if version != "" {
-		install_cmd = append(install_cmd, fmt.Sprintf("--version=%s", version))
+		install_cmd = append(install_cmd, fmt.Sprintf("--operator-version=%s", version))
 	}
 
 	for key, val := range params {
@@ -229,7 +231,7 @@ func (c *KubernetesTestClient) PrintLogsOfNamespace(namespace string) {
 	log.Info(fmt.Sprintf("Using kubectl from path: %s", kubectlPath))
 
 	cmd := exec.Command(kubectlPath, "logs", fmt.Sprintf("-l heritage=kudo"), fmt.Sprintf("--namespace=%s", namespace))
-	log.Infoln(fmt.Sprintf("logs %s --heritage=kudo", namespace))
+	log.Infoln(fmt.Sprintf("logs %s --heritage=kudo -c %s", namespace, suites.DefaultContainerName))
 	out, err := cmd.Output()
 	if err != nil {
 		log.Error(string(err.(*exec.ExitError).Stderr))
