@@ -210,7 +210,7 @@ var _ = Describe("KafkaTest", func() {
 
 		Context("Update LOG_RETENTION_HOURS param from default 168 to 200", func() {
 			It("LOG_RETENTION_HOURS should change from 168 to 200", func() {
-				currentParamVal, _ := utils.KClient.GetParamForKudoInstance(DefaultKudoKafkaInstance, customNamespace,"LOG_RETENTION_HOURS")
+				currentParamVal, _ := utils.KClient.GetParamForKudoInstance(DefaultKudoKafkaInstance, customNamespace, "LOG_RETENTION_HOURS")
 				log.Printf("Current Parameter %s value is : %s ", "LOG_RETENTION_HOURS", currentParamVal)
 				err := utils.KClient.UpdateInstanceParams(DefaultKudoKafkaInstance, customNamespace, map[string]string{"LOG_RETENTION_HOURS": "200"})
 				Expect(err).To(BeNil())
@@ -218,7 +218,7 @@ var _ = Describe("KafkaTest", func() {
 				Expect(err).To(BeNil())
 				updatedParamVal := "200"
 				Expect(updatedParamVal).NotTo(Equal(currentParamVal))
-				Expect(utils.KClient.GetParamForKudoInstance(DefaultKudoKafkaInstance, customNamespace,"LOG_RETENTION_HOURS")).To(Equal("200"))
+				Expect(utils.KClient.GetParamForKudoInstance(DefaultKudoKafkaInstance, customNamespace, "LOG_RETENTION_HOURS")).To(Equal("200"))
 			})
 			It("statefulset should have 3 replicas", func() {
 				Expect(utils.KClient.GetStatefulSetCount(DefaultKafkaStatefulSetName, customNamespace)).To(Equal(3))
@@ -231,7 +231,7 @@ var _ = Describe("KafkaTest", func() {
 				Expect(utils.KClient.GetStatefulSetCount(DefaultKafkaStatefulSetName, customNamespace)).To(Equal(3))
 			})
 			It("Check parameter value again", func() {
-				Expect(utils.KClient.GetParamForKudoInstance(DefaultKudoKafkaInstance, customNamespace,"LOG_RETENTION_HOURS")).To(Equal("200"))
+				Expect(utils.KClient.GetParamForKudoInstance(DefaultKudoKafkaInstance, customNamespace, "LOG_RETENTION_HOURS")).To(Equal("200"))
 			})
 		})
 
