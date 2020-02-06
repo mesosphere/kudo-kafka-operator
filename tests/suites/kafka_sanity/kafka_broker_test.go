@@ -235,8 +235,8 @@ var _ = Describe("KafkaTest", func() {
 			})
 			It("Check parameter value again", func() {
 				out, err := kafkaClient.ExecInPod(customNamespace, GetBrokerPodName(0), DefaultContainerName,
-				[]string{"grep", "log.retention.hours", "/opt/kafka/server.properties"})
-				Expect(out).To(ContainSubstring(fmt.Sprintf("%s=%s", "log.retention.hours", "200")))
+					[]string{"grep", "log.retention.hours", "/var/lib/kafka/data/server.log"})
+				Expect(out).To(ContainSubstring(fmt.Sprintf("%s = %s", "log.retention.hours", "200")))
 			})
 		})
 
