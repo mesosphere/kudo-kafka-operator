@@ -1,0 +1,141 @@
+package main
+
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"os"
+	"os/exec"
+	"path"
+	"strings"
+
+	jsoniter "github.com/json-iterator/go"
+	"gopkg.in/alecthomas/kingpin.v2"
+	"gopkg.in/yaml.v2"
+)
+
+// Connector Struct
+type Connector struct {
+	Resources []string    `json:"resources,omitempty" yaml:"resources,omitempty"`
+	Config    interface{} `json:"config,omitempty" yaml:"config,omitempty"`
+}
+
+var (
+	app        = kingpin.New("kafka-connectors", "A command-line kafka connectors configuration parser and setup helper.")
+	config     = app.Flag("config", "Path to the configuration file.").Required().File()
+	download   = app.Command("download", "Downloads the resources needed for connectors.")
+	register   = app.Command("register", "Register the connectors in kafka-connect.")
+	endpoint   = register.Arg("endpoint", "Kafka Connect REST endpoint").Required().String()
+	connectors = make(map[string]Connector)
+)
+
+func main() {
+	parsed, _ := app.Parse(os.Args[1:])
+	if *config != nil {
+		b, _ := ioutil.ReadAll(*config)
+		log.Printf("Parsing configuration: %s", string(b))
+		if err := yaml.Unmarshal(b, connectors); err != nil {
+			panic(err)
+		}
+		switch parsed {
+		case "register":
+			log.Printf("Registering to endpoint %s", *endpoint)
+			for name, config := range connectors {
+				log.Printf("Parsing connector: %s", name)
+				log.Printf("Registering connector configuration: %v\n", *endpoint, config.Config)
+				RegisterConnector(*endpoint, config.Config)
+			}
+
+		case "download":
+			downloadDirectory, _ := os.Getwd()
+			for name, config := range connectors {
+				log.Printf("Parsing connector: %s", name)
+				for _, resource := range config.Resources {
+					log.Printf("Downloading file: %s\n", resource)
+					filename, err := DownloadFile(path.Join(downloadDirectory, "tmp"), resource)
+					if err != nil {
+						panic(err)
+					}
+					log.Printf("Extracting file: %s\n", resource)
+					ExtractFile(path.Join(downloadDirectory, "tmp", filename))
+				}
+			}
+		}
+	}
+}
+
+// DownloadFile Download files to directory
+func DownloadFile(downloadDirectory, url string) (string, error) {
+
+	filename := path.Base(url)
+	filepath := path.Join(downloadDirectory, filename)
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return filename, err
+	}
+	defer resp.Body.Close()
+
+	out, err := os.Create(filepath)
+	if err != nil {
+		return filename, err
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, resp.Body)
+	return filename, err
+}
+
+// ExtractFile Extract archives using p7zip
+func ExtractFile(filepath string) {
+
+	filename := path.Base(filepath)
+	directory := strings.TrimSuffix(filepath, filename)
+	isTarGz := strings.HasSuffix(filename, ".tar.gz")
+
+	log.Printf("Running Command: '7z x %s -o%s'", filepath, directory)
+	cmd := exec.Command("7z", "x", filepath, fmt.Sprintf("-o%s", directory))
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err := cmd.Run()
+	if err != nil {
+		log.Fatalf("Command '7z x %s' failed with %s\n", filepath, err)
+	}
+
+	if isTarGz {
+		tarFile := strings.TrimSuffix(filepath, ".gz")
+		log.Printf("Running Command: '7z e %s -o%s'", tarFile, directory)
+		cmd := exec.Command("7z", "e", tarFile, fmt.Sprintf("-o%s", directory))
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		err := cmd.Run()
+		if err != nil {
+			log.Fatalf("Command '7z e %s -o%s' failed with %s\n", tarFile, directory, err)
+		}
+	}
+}
+
+// RegisterConnector register connectors to kafka-connect endpoint
+func RegisterConnector(endpoint string, data interface{}) {
+
+	payloadBytes, err := jsoniter.Marshal(data)
+	if err != nil {
+		panic(err)
+	}
+	body := bytes.NewReader(payloadBytes)
+
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/%s", endpoint, "connectors"), body)
+	if err != nil {
+		panic(err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+}
