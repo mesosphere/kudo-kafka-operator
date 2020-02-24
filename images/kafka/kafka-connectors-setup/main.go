@@ -23,13 +23,19 @@ type Connector struct {
 	Config    interface{} `json:"config,omitempty" yaml:"config,omitempty"`
 }
 
+// ConfigFile Struct
+type ConfigFile struct {
+	Connectors map[string]Connector `json:"connectors,omitempty" yaml:"connectors,omitempty"`
+	Resources  []string             `json:"resources,omitempty" yaml:"resources,omitempty"`
+}
+
 var (
 	app        = kingpin.New("kafka-connectors", "A command-line kafka connectors configuration parser and setup helper.")
 	config     = app.Flag("config", "Path to the configuration file.").Required().File()
 	download   = app.Command("download", "Downloads the resources needed for connectors.")
 	register   = app.Command("register", "Register the connectors in kafka-connect.")
 	endpoint   = register.Arg("endpoint", "Kafka Connect REST endpoint").Required().String()
-	connectors = make(map[string]Connector)
+	configFile = &ConfigFile{}
 )
 
 func main() {
@@ -37,13 +43,13 @@ func main() {
 	if *config != nil {
 		b, _ := ioutil.ReadAll(*config)
 		log.Printf("Parsing configuration: %s", string(b))
-		if err := yaml.Unmarshal(b, connectors); err != nil {
+		if err := yaml.Unmarshal(b, configFile); err != nil {
 			panic(err)
 		}
 		switch parsed {
 		case "register":
 			log.Printf("Registering to endpoint %s", *endpoint)
-			for name, config := range connectors {
+			for name, config := range configFile.Connectors {
 				log.Printf("Parsing connector: %s", name)
 				log.Printf("Registering connector configuration: %v\n", *endpoint, config.Config)
 				RegisterConnector(*endpoint, config.Config)
@@ -51,17 +57,27 @@ func main() {
 
 		case "download":
 			downloadDirectory, _ := os.Getwd()
-			for name, config := range connectors {
+			for name, config := range configFile.Connectors {
 				log.Printf("Parsing connector: %s", name)
 				for _, resource := range config.Resources {
 					log.Printf("Downloading file: %s\n", resource)
-					filename, err := DownloadFile(path.Join(downloadDirectory, "tmp"), resource)
+					filename, err := DownloadFile(downloadDirectory, resource)
 					if err != nil {
 						panic(err)
 					}
 					log.Printf("Extracting file: %s\n", resource)
-					ExtractFile(path.Join(downloadDirectory, "tmp", filename))
+					ExtractFile(path.Join(downloadDirectory, filename))
 				}
+			}
+			log.Printf("Parsing download only connector resources")
+			for _, resource := range configFile.Resources {
+				log.Printf("Downloading file: %s\n", resource)
+				filename, err := DownloadFile(downloadDirectory, resource)
+				if err != nil {
+					panic(err)
+				}
+				log.Printf("Extracting file: %s\n", resource)
+				ExtractFile(path.Join(downloadDirectory, filename))
 			}
 		}
 	}
@@ -120,6 +136,10 @@ func ExtractFile(filepath string) {
 
 // RegisterConnector register connectors to kafka-connect endpoint
 func RegisterConnector(endpoint string, data interface{}) {
+
+	if data == nil {
+		return
+	}
 
 	payloadBytes, err := jsoniter.Marshal(data)
 	if err != nil {

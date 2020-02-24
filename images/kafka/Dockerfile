@@ -1,9 +1,12 @@
 FROM golang:alpine AS build-env
-WORKDIR /kafka-utils
-ADD ./kafka-utils /kafka-utils
+WORKDIR /tools
+RUN mkdir kafka_utils kafka-connectors-setup
+ADD ./kafka-utils ./kafka-utils
+ADD ./kafka-connectors-setup ./kafka-connectors-setup
 RUN apk add --no-cache gcc musl-dev git mercurial ca-certificates
 ENV GO111MODULE=on
-RUN cd /kafka-utils && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o kafka-utils
+RUN cd ./kafka-utils && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o kafka-utils
+RUN cd ./kafka-connectors-setup && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o kafka-connectors-setup
 
 FROM debian:stable-20190610 AS java8-builder
 
@@ -22,7 +25,7 @@ RUN ./gradlew jar --warning-mode=all
 # using debian:stretch-20190610-slim
 FROM debian@sha256:9490c476443a3869e39c2897fa66c91daf5dcbbfca53c976dac7bbdc45775b28
 
-RUN apt-get update && apt-get install -y curl openssl netcat procps
+RUN apt-get update && apt-get install -y curl openssl netcat procps p7zip-full
 RUN rm -rf /var/lib/apt/lists/*
 
 COPY --from=java8-builder /srv/jdk /usr/share/java
@@ -57,7 +60,8 @@ RUN curl "https://downloads.mesosphere.com/kafka/assets/kafka-custom-principal-b
 WORKDIR $KAFKA_HOME
 
 COPY scripts/metrics-config.yml /opt/kafka/
-COPY --from=build-env /kafka-utils/ /opt/kafka/
+COPY --from=build-env /tools/kafka-utils/ /opt/kafka/
+COPY --from=build-env /tools/kafka-connectors-setup/ /opt/kafka/
 COPY --from=cruise-control /cruise-control/cruise-control-metrics-reporter/build/libs/cruise-control-metrics-reporter-2.0.77.jar /opt/kafka/libs
 RUN chown -R "$UNAME:$UNAME" $KAFKA_HOME
 
