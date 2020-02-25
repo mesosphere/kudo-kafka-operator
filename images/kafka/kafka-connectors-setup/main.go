@@ -8,11 +8,10 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
 	"path"
-	"strings"
 
 	jsoniter "github.com/json-iterator/go"
+	archiver "github.com/mholt/archiver/v3"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"gopkg.in/yaml.v2"
 )
@@ -66,7 +65,7 @@ func main() {
 						panic(err)
 					}
 					log.Printf("Extracting file: %s\n", resource)
-					ExtractFile(path.Join(downloadDirectory, filename))
+					ExtractFile(path.Join(downloadDirectory, filename), downloadDirectory)
 				}
 			}
 			log.Printf("Parsing download only connector resources")
@@ -77,7 +76,7 @@ func main() {
 					panic(err)
 				}
 				log.Printf("Extracting file: %s\n", resource)
-				ExtractFile(path.Join(downloadDirectory, filename))
+				ExtractFile(path.Join(downloadDirectory, filename), downloadDirectory)
 			}
 		}
 	}
@@ -106,31 +105,12 @@ func DownloadFile(downloadDirectory, url string) (string, error) {
 }
 
 // ExtractFile Extract archives using p7zip
-func ExtractFile(filepath string) {
+func ExtractFile(filepath, destination string) {
 
-	filename := path.Base(filepath)
-	directory := strings.TrimSuffix(filepath, filename)
-	isTarGz := strings.HasSuffix(filename, ".tar.gz")
+	err := archiver.Unarchive(filepath, destination)
 
-	log.Printf("Running Command: '7z x %s -o%s'", filepath, directory)
-	cmd := exec.Command("7z", "x", filepath, fmt.Sprintf("-o%s", directory))
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
 	if err != nil {
-		log.Fatalf("Command '7z x %s' failed with %s\n", filepath, err)
-	}
-
-	if isTarGz {
-		tarFile := strings.TrimSuffix(filepath, ".gz")
-		log.Printf("Running Command: '7z e %s -o%s'", tarFile, directory)
-		cmd := exec.Command("7z", "e", tarFile, fmt.Sprintf("-o%s", directory))
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		err := cmd.Run()
-		if err != nil {
-			log.Fatalf("Command '7z e %s -o%s' failed with %s\n", tarFile, directory, err)
-		}
+		panic(err)
 	}
 }
 
