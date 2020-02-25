@@ -25,7 +25,7 @@ RUN ./gradlew jar --warning-mode=all
 # using debian:stretch-20190610-slim
 FROM debian@sha256:9490c476443a3869e39c2897fa66c91daf5dcbbfca53c976dac7bbdc45775b28
 
-RUN apt-get update && apt-get install -y curl openssl netcat procps p7zip-full
+RUN apt-get update && apt-get install -y curl openssl netcat procps
 RUN rm -rf /var/lib/apt/lists/*
 
 COPY --from=java8-builder /srv/jdk /usr/share/java
