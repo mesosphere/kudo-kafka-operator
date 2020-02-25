@@ -84,7 +84,6 @@ func main() {
 
 // DownloadFile Download files to directory
 func DownloadFile(downloadDirectory, url string) (string, error) {
-
 	filename := path.Base(url)
 	filepath := path.Join(downloadDirectory, filename)
 
@@ -106,9 +105,7 @@ func DownloadFile(downloadDirectory, url string) (string, error) {
 
 // ExtractFile Extract archives using p7zip
 func ExtractFile(filepath, destination string) {
-
 	err := archiver.Unarchive(filepath, destination)
-
 	if err != nil {
 		panic(err)
 	}
@@ -116,11 +113,9 @@ func ExtractFile(filepath, destination string) {
 
 // RegisterConnector register connectors to kafka-connect endpoint
 func RegisterConnector(endpoint string, data interface{}) {
-
 	if data == nil {
 		return
 	}
-
 	payloadBytes, err := jsoniter.Marshal(data)
 	if err != nil {
 		panic(err)
