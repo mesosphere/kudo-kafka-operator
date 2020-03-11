@@ -49,7 +49,6 @@ var _ = Describe("KafkaTest", func() {
 				kafkaClient := utils.NewKafkaClient(utils.KClient, &utils.KafkaClientConfiguration{
 					Namespace: utils.String(customNamespace),
 				})
-
 				kafkaClient.WaitForBrokersToBeRegisteredWithService(GetBrokerPodName(0), DefaultContainerName, 100)
 				kafkaClient.WaitForBrokersToBeRegisteredWithService(GetBrokerPodName(1), DefaultContainerName, 100)
 				kafkaClient.WaitForBrokersToBeRegisteredWithService(GetBrokerPodName(2), DefaultContainerName, 100)

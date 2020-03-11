@@ -251,13 +251,13 @@ func DeletePVCs(containsString string) error {
 	return KClient.DeletePVCs(containsString)
 }
 
-func GetKafkaKeyabs(namespace string) []string {
-	return []string{
-		"livenessProbe/kafka-kafka-0.kafka-svc." + namespace + ".svc.cluster.local@LOCAL",
-		"livenessProbe/kafka-kafka-1.kafka-svc." + namespace + ".svc.cluster.local@LOCAL",
-		"livenessProbe/kafka-kafka-2.kafka-svc." + namespace + ".svc.cluster.local@LOCAL",
-		"kafka/kafka-kafka-0.kafka-svc." + namespace + ".svc.cluster.local@LOCAL",
-		"kafka/kafka-kafka-1.kafka-svc." + namespace + ".svc.cluster.local@LOCAL",
-		"kafka/kafka-kafka-2.kafka-svc." + namespace + ".svc.cluster.local@LOCAL",
+func GetKafkaKeyTabs(brokers int, namespace string) []string {
+	keyTabs := []string{}
+	for i := 0; i < brokers; i++ {
+		keyTabs = append(keyTabs,
+			fmt.Sprintf("livenessProbe/kafka-kafka-%d.kafka-svc.%s.svc.cluster.local@LOCAL", i, namespace),
+			fmt.Sprintf("kafka/kafka-kafka-%d.kafka-svc.%s.svc.cluster.local@LOCAL", i, namespace),
+		)
 	}
+	return keyTabs
 }

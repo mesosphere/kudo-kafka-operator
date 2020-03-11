@@ -14,7 +14,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
-	"k8s.io/api/apps/v1beta2"
+	apps_v1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -189,15 +189,15 @@ func (c *KubernetesTestClient) GetStatefulSetCount(name, namespace string) int {
 func (c *KubernetesTestClient) GetStatefulSetReadyReplicasCount(name, namespace string) int {
 	statefulSet := c.GetStatefulSet(name, namespace)
 	if statefulSet == nil {
-		log.Warningf("Found 0 replicas for statefulset %s in %s namespace.", name, namespace)
+		log.Warningf("Found 0 ready replicas for statefulset %s in %s namespace.", name, namespace)
 		return 0
 	}
 	log.Infof("Found %d/%d ready replicas of the %s in %s namespace.", statefulSet.Status.ReadyReplicas, *statefulSet.Spec.Replicas, name, namespace)
 	return int(statefulSet.Status.ReadyReplicas)
 }
 
-func (c *KubernetesTestClient) GetStatefulSet(name, namespace string) *v1beta2.StatefulSet {
-	statefulSet, err := c.AppsV1beta2().StatefulSets(namespace).Get(name, metav1.GetOptions{})
+func (c *KubernetesTestClient) GetStatefulSet(name, namespace string) *apps_v1.StatefulSet {
+	statefulSet, err := c.AppsV1().StatefulSets(namespace).Get(name, metav1.GetOptions{})
 	if err != nil {
 		log.Warningf("%v", err)
 		return nil
@@ -239,7 +239,7 @@ func Setup(namespace string) {
 	})
 	KClient.WaitForStatefulSetCount(suites.DefaultZkStatefulSetName, namespace, 3, 30)
 	InstallKudoOperator(namespace, KAFKA_INSTANCE, KAFKA_FRAMEWORK_DIR_ENV, map[string]string{
-		"BROKER_MEM":      "1Gi",
+		"BROKER_MEM":      "512Mi",
 		"BROKER_CPUS":     "0.25",
 		"METRICS_ENABLED": "true",
 	})
@@ -247,13 +247,23 @@ func Setup(namespace string) {
 }
 
 func SetupWithKerberos(namespace string) {
-	InstallKudoOperator(namespace, ZK_INSTANCE, ZK_FRAMEWORK_DIR_ENV, map[string]string{})
+	InstallKudoOperator(namespace, ZK_INSTANCE, ZK_FRAMEWORK_DIR_ENV, map[string]string{
+		"MEMORY":     "256Mi",
+		"CPUS":       "0.25",
+		"NODE_COUNT": "1",
+	})
 	KClient.WaitForStatefulSetCount(suites.DefaultZkStatefulSetName, namespace, 3, 30)
 	InstallKudoOperator(namespace, KAFKA_INSTANCE, KAFKA_FRAMEWORK_DIR_ENV, map[string]string{
-		"KERBEROS_ENABLED":       "true",
-		"KERBEROS_KDC_HOSTNAME":  "kdc-service",
-		"KERBEROS_KDC_PORT":      "2500",
-		"KERBEROS_KEYTAB_SECRET": "base64-kafka-keytab-secret",
+		"KERBEROS_ENABLED":             "true",
+		"KERBEROS_KDC_HOSTNAME":        "kdc-service",
+		"KERBEROS_KDC_PORT":            "2500",
+		"KERBEROS_KEYTAB_SECRET":       "base64-kafka-keytab-secret",
+		"BROKER_MEM":                   "512Mi",
+		"BROKER_CPUS":                  "0.25",
+		"BROKER_COUNT":                 "1",
+		"ZOOKEEPER_URI":                "zookeeper-instance-zookeeper-0.zookeeper-instance-hs:2181",
+		"TRANSPORT_ENCRYPTION_ENABLED": "true",
+		"USE_AUTO_TLS_CERTIFICATE":     "true",
 	})
 	KClient.WaitForStatefulSetCount(suites.DefaultKafkaStatefulSetName, namespace, 3, 30)
 }
