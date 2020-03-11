@@ -35,9 +35,9 @@ var _ = Describe("KafkaTest", func() {
 				Expect(krb5Client.CreateKeytabSecret(utils.GetKafkaKeyabs(customNamespace), "kafka", "base64-kafka-keytab-secret")).To(BeNil())
 			})
 			It("Kafka and Zookeeper statefulset should have 3 replicas with status READY", func() {
-				err := utils.KClient.WaitForStatefulSetReadyReplicasCount(DefaultZkStatefulSetName, customNamespace, 3, 240)
+				err := utils.KClient.WaitForStatefulSetReadyReplicasCount(DefaultZkStatefulSetName, customNamespace, 3, utils.DefaultStatefulReadyWaitSeconds)
 				Expect(err).To(BeNil())
-				err = utils.KClient.WaitForStatefulSetReadyReplicasCount(DefaultKafkaStatefulSetName, customNamespace, 3, 300)
+				err = utils.KClient.WaitForStatefulSetReadyReplicasCount(DefaultKafkaStatefulSetName, customNamespace, 3, utils.DefaultStatefulReadyWaitSeconds)
 				Expect(err).To(BeNil())
 				Expect(utils.KClient.GetStatefulSetCount(DefaultKafkaStatefulSetName, customNamespace)).To(Equal(3))
 			})
@@ -74,7 +74,7 @@ var _ = BeforeSuite(func() {
 		"MEMORY": "256Mi",
 		"CPUS":   "0.25",
 	})
-	utils.KClient.WaitForStatefulSetCount(DefaultZkStatefulSetName, customNamespace, 3, 30)
+	utils.KClient.WaitForStatefulSetCount(DefaultZkStatefulSetName, customNamespace, 3, utils.DefaultStatefulReadyWaitSeconds)
 	utils.InstallKudoOperator(customNamespace, utils.KAFKA_INSTANCE, utils.KAFKA_FRAMEWORK_DIR_ENV, map[string]string{
 		"BROKER_MEM":                   "1Gi",
 		"BROKER_CPUS":                  "0.25",
@@ -85,7 +85,7 @@ var _ = BeforeSuite(func() {
 		"KERBEROS_KDC_PORT":            "2500",
 		"KERBEROS_KEYTAB_SECRET":       "base64-kafka-keytab-secret",
 	})
-	utils.KClient.WaitForStatefulSetCount(DefaultKafkaStatefulSetName, customNamespace, 3, 30)
+	utils.KClient.WaitForStatefulSetCount(DefaultKafkaStatefulSetName, customNamespace, 3, utils.DefaultStatefulReadyWaitSeconds)
 })
 
 var _ = AfterSuite(func() {

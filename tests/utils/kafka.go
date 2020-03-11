@@ -17,11 +17,12 @@ import (
 )
 
 var (
-	defaultKafkaRetry         = 3
-	defaultKafkaRetryInterval = 1 * time.Second
-	defaultNamespace          = "default"
-	defaultInstanceName       = "kafka"
-	defaultKerberosEnabled    = false
+	defaultKafkaRetry               = 3
+	defaultKafkaRetryInterval       = 1 * time.Second
+	defaultNamespace                = "default"
+	defaultInstanceName             = "kafka"
+	defaultKerberosEnabled          = false
+	DefaultStatefulReadyWaitSeconds = 300 * time.Second
 )
 
 type KafkaClient struct {
