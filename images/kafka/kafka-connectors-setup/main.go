@@ -42,5 +42,7 @@ func main() {
 			log.Printf("Parsing download only connector resources")
 			configuration.DownloadResources(downloadDirectory)
 		}
+	} else {
+		log.Fatalf("No configuration file provided or the file cannot be accessed")
 	}
 }
