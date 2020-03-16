@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -182,7 +183,7 @@ func (c *KubernetesTestClient) GetStatefulSetCount(name, namespace string) int {
 		log.Warningf("Found 0 replicas for statefulset %s in namespace %s .", name, namespace)
 		return 0
 	}
-	log.Infof("Found %d  replicas of the %s in %s namespace", *statefulSet.Spec.Replicas, name, namespace)
+	log.Infof("Found %d replicas of the %s in %s namespace", *statefulSet.Spec.Replicas, name, namespace)
 	return int(*statefulSet.Spec.Replicas)
 }
 
@@ -246,26 +247,27 @@ func Setup(namespace string) {
 	KClient.WaitForStatefulSetCount(suites.DefaultKafkaStatefulSetName, namespace, 3, 30)
 }
 
-func SetupWithKerberos(namespace string) {
+func SetupWithKerberos(namespace string, tlsEnabled bool) {
 	InstallKudoOperator(namespace, ZK_INSTANCE, ZK_FRAMEWORK_DIR_ENV, map[string]string{
 		"MEMORY":     "256Mi",
 		"CPUS":       "0.25",
 		"NODE_COUNT": "1",
 	})
-	KClient.WaitForStatefulSetCount(suites.DefaultZkStatefulSetName, namespace, 3, 30)
+	KClient.WaitForStatefulSetCount(suites.DefaultZkStatefulSetName, namespace, 1, 30)
 	InstallKudoOperator(namespace, KAFKA_INSTANCE, KAFKA_FRAMEWORK_DIR_ENV, map[string]string{
-		"KERBEROS_ENABLED":             "true",
-		"KERBEROS_KDC_HOSTNAME":        "kdc-service",
-		"KERBEROS_KDC_PORT":            "2500",
-		"KERBEROS_KEYTAB_SECRET":       "base64-kafka-keytab-secret",
-		"BROKER_MEM":                   "512Mi",
-		"BROKER_CPUS":                  "0.25",
-		"BROKER_COUNT":                 "1",
-		"ZOOKEEPER_URI":                "zookeeper-instance-zookeeper-0.zookeeper-instance-hs:2181",
-		"TRANSPORT_ENCRYPTION_ENABLED": "true",
-		"USE_AUTO_TLS_CERTIFICATE":     "true",
+		"KERBEROS_ENABLED":                 "true",
+		"KERBEROS_KDC_HOSTNAME":            "kdc-service",
+		"KERBEROS_KDC_PORT":                "2500",
+		"KERBEROS_KEYTAB_SECRET":           "base64-kafka-keytab-secret",
+		"BROKER_MEM":                       "512Mi",
+		"BROKER_CPUS":                      "0.25",
+		"BROKER_COUNT":                     "1",
+		"ZOOKEEPER_URI":                    "zookeeper-instance-zookeeper-0.zookeeper-instance-hs:2181",
+		"TRANSPORT_ENCRYPTION_ENABLED":     strconv.FormatBool(tlsEnabled),
+		"OFFSETS_TOPIC_REPLICATION_FACTOR": "1",
+		"USE_AUTO_TLS_CERTIFICATE":         "true",
 	})
-	KClient.WaitForStatefulSetCount(suites.DefaultKafkaStatefulSetName, namespace, 3, 30)
+	KClient.WaitForStatefulSetCount(suites.DefaultKafkaStatefulSetName, namespace, 1, 30)
 }
 
 func TearDown(namespace string) {

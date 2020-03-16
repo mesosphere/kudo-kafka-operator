@@ -2,7 +2,6 @@ package kafka_kerberos
 
 import (
 	"fmt"
-	"strconv"
 	"testing"
 
 	. "github.com/mesosphere/kudo-kafka-operator/tests/suites"
@@ -44,7 +43,7 @@ var _ = Describe("KafkaTest", func() {
 				Expect(err).To(BeNil())
 			})
 			It("verify the SSL listener", func() {
-				output, err := kafkaClient.ExecInPod(customNamespace, "kafka-kafka-2", DefaultContainerName,
+				output, err := kafkaClient.ExecInPod(customNamespace, "kafka-kafka-0", DefaultContainerName,
 					[]string{"grep", "ListenerName", "/var/lib/kafka/data/server.log"})
 				Expect(err).To(BeNil())
 				Expect(output).To(ContainSubstring("ListenerName(INTERNAL),SASL_SSL"))
@@ -72,24 +71,7 @@ var _ = BeforeSuite(func() {
 	utils.KClient.CreateNamespace(customNamespace, false)
 	utils.KClient.CreateTLSCertSecret(customNamespace, "kafka-tls", "Kafka")
 	Expect(krb5Client.Deploy()).To(BeNil())
-	utils.InstallKudoOperator(customNamespace, utils.ZK_INSTANCE, utils.ZK_FRAMEWORK_DIR_ENV, map[string]string{
-		"MEMORY":     "256Mi",
-		"CPUS":       "0.25",
-		"NODE_COUNT": strconv.FormatInt(int64(zkNodeCount), 10),
-	})
-	utils.KClient.WaitForStatefulSetCount(DefaultZkStatefulSetName, customNamespace, zkNodeCount, utils.DefaultStatefulReadyWaitSeconds)
-	utils.InstallKudoOperator(customNamespace, utils.KAFKA_INSTANCE, utils.KAFKA_FRAMEWORK_DIR_ENV, map[string]string{
-		"BROKER_MEM":                   "1Gi",
-		"BROKER_CPUS":                  "0.25",
-		"BROKER_COUNT":                 strconv.FormatInt(int64(kafkaBrokerCount), 10),
-		"TLS_SECRET_NAME":              "kafka-tls",
-		"TRANSPORT_ENCRYPTION_ENABLED": "true",
-		"KERBEROS_ENABLED":             "true",
-		"KERBEROS_KDC_HOSTNAME":        "kdc-service",
-		"KERBEROS_KDC_PORT":            "2500",
-		"KERBEROS_KEYTAB_SECRET":       "base64-kafka-keytab-secret",
-	})
-	utils.KClient.WaitForStatefulSetCount(DefaultKafkaStatefulSetName, customNamespace, kafkaBrokerCount, utils.DefaultStatefulReadyWaitSeconds)
+	utils.SetupWithKerberos(customNamespace, true)
 })
 
 var _ = AfterSuite(func() {
