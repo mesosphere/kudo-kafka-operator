@@ -4,16 +4,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/onsi/ginkgo/reporters"
-
-	"github.com/golang/mock/gomock"
-
 	"github.com/mesosphere/kudo-kafka-operator/images/kafka/kafka-connectors-setup/pkgs/mocks"
 
-	. "github.com/onsi/gomega"
-
+	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
-
+	"github.com/onsi/ginkgo/reporters"
+	. "github.com/onsi/gomega"
 	"gopkg.in/yaml.v2"
 )
 

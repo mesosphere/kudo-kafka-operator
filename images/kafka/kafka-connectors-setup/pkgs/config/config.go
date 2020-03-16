@@ -28,7 +28,7 @@ type ConfigurationSetup struct {
 // RegisterConnectors Registers Connectors to endpoint
 func (c *ConfigurationSetup) RegisterConnectors(endpoint string) {
 	for name, connector := range c.ConfigFile.Connectors {
-		log.Printf("Registering connector: %s", name)
+		log.Printf("Registering connector: %s\n", name)
 		err := c.Utils.RegisterConnector(endpoint, connector.Config)
 		if err != nil {
 			log.Fatalf("Error in registering connector: %v", err)

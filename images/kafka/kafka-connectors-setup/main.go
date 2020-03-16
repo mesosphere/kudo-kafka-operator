@@ -39,7 +39,7 @@ func main() {
 		case "download":
 			downloadDirectory, _ := os.Getwd()
 			configuration.DownloadConnectorResources(downloadDirectory)
-			log.Printf("Parsing download only connector resources")
+			log.Printf("Parsing download only connector resources to '%s'", downloadDirectory)
 			configuration.DownloadResources(downloadDirectory)
 		}
 	} else {

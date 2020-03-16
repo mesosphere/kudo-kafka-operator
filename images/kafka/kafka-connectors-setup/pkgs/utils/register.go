@@ -11,7 +11,7 @@ import (
 // RegisterConnector register connectors to kafka-connect endpoint
 func (u *UtilsImpl) RegisterConnector(endpoint string, data interface{}) error {
 	if data == nil {
-		return fmt.Errorf("Register data is empty")
+		return fmt.Errorf("register data is empty for endpoint %s", endpoint)
 	}
 	payloadBytes, err := jsoniter.Marshal(data)
 	if err != nil {
