@@ -164,7 +164,7 @@ var _ = Describe("KafkaTest", func() {
 				err = utils.KClient.WaitForStatefulSetReadyReplicasCount(DefaultKafkaStatefulSetName, customNamespace, 4, utils.DefaultStatefulReadyWaitSeconds)
 				Expect(err).To(BeNil())
 				kafkaClient.WaitForBrokersToBeRegisteredWithService(GetBrokerPodName(3), DefaultContainerName, 100)
-				out, err := kafkaClient.CreateTopic(GetBrokerPodName(3), DefaultContainerName, topicName, "0:1:3")
+				out, err := kafkaClient.CreateTopic(GetBrokerPodName(3), DefaultContainerName, topicName, "0:1:2")
 				Expect(err).To(BeNil())
 				Expect(out).To(ContainSubstring("Created topic"))
 				messageToTest := "ReplicatedMessage"
@@ -212,15 +212,17 @@ var _ = Describe("KafkaTest", func() {
 				Namespace: utils.String(customNamespace),
 			})
 			It("LOG_RETENTION_HOURS should change from 168 to 200", func() {
+				err := utils.KClient.WaitForReadyStatus(DefaultKudoKafkaInstance, customNamespace, 300)
+				Expect(err).To(BeNil())
 				currentParamVal, _ := utils.KClient.GetParamForKudoInstance(DefaultKudoKafkaInstance, customNamespace, "LOG_RETENTION_HOURS")
 				log.Printf("Current Parameter %s value is : %s ", "LOG_RETENTION_HOURS", currentParamVal)
 				updatedParamVal := "200"
-				err := utils.KClient.UpdateInstanceParams(DefaultKudoKafkaInstance, customNamespace, map[string]string{"LOG_RETENTION_HOURS": updatedParamVal})
+				err = utils.KClient.UpdateInstanceParams(DefaultKudoKafkaInstance, customNamespace, map[string]string{"LOG_RETENTION_HOURS": updatedParamVal})
 				Expect(err).To(BeNil())
 				Expect(updatedParamVal).NotTo(Equal(currentParamVal))
 				newValue, _ := utils.KClient.GetParamForKudoInstance(DefaultKudoKafkaInstance, customNamespace, "LOG_RETENTION_HOURS")
 				Expect(updatedParamVal).To(BeEquivalentTo(newValue))
-				err = utils.KClient.WaitForReadyStatus(DefaultKudoKafkaInstance, customNamespace, 240)
+				err = utils.KClient.WaitForReadyStatus(DefaultKudoKafkaInstance, customNamespace, 300)
 				Expect(err).To(BeNil())
 				Expect(utils.KClient.GetParamForKudoInstance(DefaultKudoKafkaInstance, customNamespace, "LOG_RETENTION_HOURS")).To(Equal("200"))
 			})
@@ -235,7 +237,7 @@ var _ = Describe("KafkaTest", func() {
 				Expect(utils.KClient.GetStatefulSetCount(DefaultKafkaStatefulSetName, customNamespace)).To(Equal(3))
 			})
 			It("Check parameter value again", func() {
-				out, err := kafkaClient.ExecInPod(customNamespace, GetBrokerPodName(0), DefaultContainerName,
+				out, err := kafkaClient.ExecInPod(customNamespace, GetBrokerPodName(2), DefaultContainerName,
 					[]string{"grep", "log.retention.hours", "/var/lib/kafka/data/server.log"})
 				Expect(err).To(BeNil())
 				Expect(out).To(ContainSubstring(fmt.Sprintf("%s = %s", "log.retention.hours", "200")))

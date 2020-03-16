@@ -21,7 +21,6 @@ var (
 	defaultKafkaRetryInterval       = 1 * time.Second
 	defaultNamespace                = "default"
 	defaultInstanceName             = "kafka"
-	defaultKerberosEnabled          = false
 	DefaultStatefulReadyWaitSeconds = 300 * time.Second
 )
 
@@ -97,7 +96,7 @@ func (c *KafkaClient) writeInTopic(podName, container, topicName, message string
 		logrus.Error(fmt.Sprintf("Error getting BROKER_PORT for kafka: %v\n", err))
 		return "", err
 	}
-	command := []string{}
+	var command []string
 	if c.conf.KerberosEnabled {
 		command = []string{
 			"bash", "-c", c.getClientConfigurationCommand() + fmt.Sprintf("echo '%s' | /opt/kafka/bin/kafka-console-producer.sh $KAFKA_PRODUCER_CONFIG_OPTIONS --broker-list "+

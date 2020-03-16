@@ -89,7 +89,7 @@ func (c *KubernetesTestClient) WaitForPod(name, namespace string, timeoutSeconds
 		select {
 		case <-timeout:
 			c.PrintLogsOfNamespace(namespace)
-			return fmt.Errorf("Timeout while waiting for pod [%s/%s] count to be 1", namespace, name)
+			return fmt.Errorf("timeout while waiting for pod [%s/%s] count to be 1", namespace, name)
 		case <-tick:
 			if KClient.CheckIfPodExists(name, namespace) {
 				return nil
@@ -105,7 +105,7 @@ func (c *KubernetesTestClient) WaitForContainerToBeReady(containerName, podName,
 		select {
 		case <-timeout:
 			c.PrintLogsOfNamespace(namespace)
-			return fmt.Errorf("Timeout while waiting for container [%s/%s/%s] status to be READY", namespace, podName, containerName)
+			return fmt.Errorf("timeout while waiting for container [%s/%s/%s] status to be READY", namespace, podName, containerName)
 		case <-tick:
 			pod, err := KClient.GetPod(podName, namespace)
 			if kerrors.IsNotFound(err) {
@@ -130,7 +130,7 @@ func (c *KubernetesTestClient) WaitForContainerToBeReady(containerName, podName,
 
 func (c *KubernetesTestClient) WaitForStatefulSetCount(name, namespace string, count int, timeoutSeconds time.Duration) error {
 	timeout := time.After(timeoutSeconds * time.Second)
-	tick := time.Tick(500 * time.Millisecond)
+	tick := time.Tick(2 * time.Second)
 	for {
 		select {
 		case <-timeout:
@@ -180,7 +180,7 @@ func (c *KubernetesTestClient) GetPod(name, namespace string) (*v1.Pod, error) {
 func (c *KubernetesTestClient) GetStatefulSetCount(name, namespace string) int {
 	statefulSet := c.GetStatefulSet(name, namespace)
 	if statefulSet == nil {
-		log.Warningf("Found 0 replicas for statefulset %s in namespace %s .", name, namespace)
+		log.Warningf("Found 0 replicas for statefulset %s in namespace %s.", name, namespace)
 		return 0
 	}
 	log.Infof("Found %d replicas of the %s in %s namespace", *statefulSet.Spec.Replicas, name, namespace)
@@ -190,7 +190,7 @@ func (c *KubernetesTestClient) GetStatefulSetCount(name, namespace string) int {
 func (c *KubernetesTestClient) GetStatefulSetReadyReplicasCount(name, namespace string) int {
 	statefulSet := c.GetStatefulSet(name, namespace)
 	if statefulSet == nil {
-		log.Warningf("Found 0 ready replicas for statefulset %s in %s namespace.", name, namespace)
+		log.Warningf("Found 0 ready replicas for statefulset %s in namespace %s.", name, namespace)
 		return 0
 	}
 	log.Infof("Found %d/%d ready replicas of the %s in %s namespace.", statefulSet.Status.ReadyReplicas, *statefulSet.Spec.Replicas, name, namespace)
@@ -238,13 +238,13 @@ func Setup(namespace string) {
 		"MEMORY": "256Mi",
 		"CPUS":   "0.25",
 	})
-	KClient.WaitForStatefulSetCount(suites.DefaultZkStatefulSetName, namespace, 3, 30)
+	KClient.WaitForStatefulSetCount(suites.DefaultZkStatefulSetName, namespace, 3, 300)
 	InstallKudoOperator(namespace, KAFKA_INSTANCE, KAFKA_FRAMEWORK_DIR_ENV, map[string]string{
 		"BROKER_MEM":      "512Mi",
 		"BROKER_CPUS":     "0.25",
 		"METRICS_ENABLED": "true",
 	})
-	KClient.WaitForStatefulSetCount(suites.DefaultKafkaStatefulSetName, namespace, 3, 30)
+	KClient.WaitForStatefulSetCount(suites.DefaultKafkaStatefulSetName, namespace, 3, 300)
 }
 
 func SetupWithKerberos(namespace string, tlsEnabled bool) {
