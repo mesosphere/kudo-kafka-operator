@@ -6,14 +6,15 @@ import (
 	"testing"
 
 	. "github.com/mesosphere/kudo-kafka-operator/tests/suites"
-	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	"github.com/mesosphere/kudo-kafka-operator/tests/utils"
+
+	"github.com/kudobuilder/kudo/pkg/apis/kudo/v1beta1"
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
 	log "github.com/sirupsen/logrus"
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
@@ -212,7 +213,7 @@ var _ = Describe("KafkaTest", func() {
 				Namespace: utils.String(customNamespace),
 			})
 			It("LOG_RETENTION_HOURS should change from 168 to 200", func() {
-				err := utils.KClient.WaitForReadyStatus(DefaultKudoKafkaInstance, customNamespace, 300)
+				err := utils.KClient.WaitForStatus(DefaultKudoKafkaInstance, customNamespace, v1beta1.ExecutionComplete, 300)
 				Expect(err).To(BeNil())
 				currentParamVal, _ := utils.KClient.GetParamForKudoInstance(DefaultKudoKafkaInstance, customNamespace, "LOG_RETENTION_HOURS")
 				log.Printf("Current Parameter %s value is : %s ", "LOG_RETENTION_HOURS", currentParamVal)
@@ -222,7 +223,9 @@ var _ = Describe("KafkaTest", func() {
 				Expect(updatedParamVal).NotTo(Equal(currentParamVal))
 				newValue, _ := utils.KClient.GetParamForKudoInstance(DefaultKudoKafkaInstance, customNamespace, "LOG_RETENTION_HOURS")
 				Expect(updatedParamVal).To(BeEquivalentTo(newValue))
-				err = utils.KClient.WaitForReadyStatus(DefaultKudoKafkaInstance, customNamespace, 300)
+				err = utils.KClient.WaitForStatus(DefaultKudoKafkaInstance, customNamespace, v1beta1.ExecutionInProgress, 300)
+				Expect(err).To(BeNil())
+				err = utils.KClient.WaitForStatus(DefaultKudoKafkaInstance, customNamespace, v1beta1.ExecutionComplete, 300)
 				Expect(err).To(BeNil())
 				Expect(utils.KClient.GetParamForKudoInstance(DefaultKudoKafkaInstance, customNamespace, "LOG_RETENTION_HOURS")).To(Equal("200"))
 			})

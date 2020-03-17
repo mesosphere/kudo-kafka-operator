@@ -210,7 +210,7 @@ func (c *KubernetesTestClient) DeleteInstance(namespace, name string) {
 	log.Info(fmt.Sprintf("Response: %s", string(out)))
 }
 
-func (c *KubernetesTestClient) WaitForReadyStatus(name, namespace string, timeoutSeconds time.Duration) error {
+func (c *KubernetesTestClient) WaitForStatus(name, namespace string, expectedStatus v1beta1.ExecutionStatus, timeoutSeconds time.Duration) error {
 	timeout := time.After(timeoutSeconds * time.Second)
 	tick := time.Tick(2 * time.Second)
 	for {
@@ -221,7 +221,7 @@ func (c *KubernetesTestClient) WaitForReadyStatus(name, namespace string, timeou
 		case <-tick:
 			status, _ := c.GetPlanStatusForInstance(name, namespace)
 			log.Info(fmt.Sprintf("Got status %s of instance %s in namespace %s", status, name, namespace))
-			if status == v1beta1.ExecutionComplete {
+			if status == expectedStatus {
 				return nil
 			}
 		}

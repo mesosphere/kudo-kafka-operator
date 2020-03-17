@@ -254,6 +254,13 @@ func (c *KafkaClient) GetPortForInstance() (string, error) {
 		return c.kClient.GetParamForKudoInstance(*c.conf.InstanceName, *c.conf.Namespace, "BROKER_PORT")
 	}
 }
+func (c *KafkaClient) CheckForValueInFile(expectedValue, filePath, ns, pod, containerName string) (string, error) {
+	return Retry(*c.conf.Retry, *c.conf.RetryInterval, expectedValue, func() (string, error) {
+		return c.ExecInPod(ns, pod, containerName,
+			[]string{"grep", expectedValue, filePath})
+	})
+
+}
 
 func InstallKudoOperator(namespace, name, operatorPathEnv string, parameters map[string]string) {
 	validateFrameworkEnvVariable(operatorPathEnv)

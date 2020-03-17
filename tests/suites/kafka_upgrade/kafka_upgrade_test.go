@@ -5,6 +5,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/kudobuilder/kudo/pkg/apis/kudo/v1beta1"
+
 	. "github.com/mesosphere/kudo-kafka-operator/tests/suites"
 
 	"github.com/mesosphere/kudo-kafka-operator/tests/utils"
@@ -66,7 +68,7 @@ var _ = Describe("KafkaTest", func() {
 			It("operator version should change", func() {
 				currentOperatorVersion, _ := utils.KClient.GetOperatorVersionForKudoInstance(utils.KAFKA_INSTANCE, customNamespace)
 				utils.KClient.UpgardeInstanceFromPath(os.Getenv(utils.KAFKA_FRAMEWORK_DIR_ENV), customNamespace, utils.KAFKA_INSTANCE, map[string]string{})
-				utils.KClient.WaitForReadyStatus(utils.KAFKA_INSTANCE, customNamespace, 240)
+				utils.KClient.WaitForStatus(utils.KAFKA_INSTANCE, customNamespace, v1beta1.ExecutionComplete, 300)
 				newOperatorVersion, _ := utils.KClient.GetOperatorVersionForKudoInstance(utils.KAFKA_INSTANCE, customNamespace)
 				Expect(newOperatorVersion).NotTo(BeNil())
 				Expect(newOperatorVersion).NotTo(Equal(currentOperatorVersion))
