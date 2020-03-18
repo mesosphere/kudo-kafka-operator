@@ -36,7 +36,7 @@ var _ = Describe("KafkaTest", func() {
 				utils.KClient.PrintLogsOfPod("kdc", "kdc", customNamespace)
 				Expect(krb5Client.CreateKeytabSecret(utils.GetKafkaKeyTabs(1, customNamespace), "kafka", "base64-kafka-keytab-secret")).To(BeNil())
 			})
-			It("Kafka and Zookeeper statefulset should have 3 replicas with status READY", func() {
+			It("Kafka and Zookeeper statefulset should have 1 replica each with status READY", func() {
 				err := utils.KClient.WaitForStatefulSetReadyReplicasCount(DefaultZkStatefulSetName, customNamespace, zkNodeCount, utils.DefaultStatefulReadyWaitSeconds)
 				Expect(err).To(BeNil())
 				err = utils.KClient.WaitForStatefulSetReadyReplicasCount(DefaultKafkaStatefulSetName, customNamespace, kafkaBrokerCount, utils.DefaultStatefulReadyWaitSeconds)

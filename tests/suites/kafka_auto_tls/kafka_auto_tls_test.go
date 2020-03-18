@@ -22,7 +22,7 @@ var _ = Describe("KafkaAutoTLS", func() {
 			kafkaClient := utils.NewKafkaClient(utils.KClient, &utils.KafkaClientConfiguration{
 				Namespace: utils.String(customNamespace),
 			})
-			It("statefulset should have 3 replicas with status READY", func() {
+			It("statefulset should have 1 replica with status READY", func() {
 				err := utils.KClient.WaitForStatefulSetReadyReplicasCount(suites.DefaultZkStatefulSetName, customNamespace, 1, utils.DefaultStatefulReadyWaitSeconds)
 				Expect(err).To(BeNil())
 				err = utils.KClient.WaitForStatefulSetReadyReplicasCount(suites.DefaultKafkaStatefulSetName, customNamespace, 1, utils.DefaultStatefulReadyWaitSeconds)
