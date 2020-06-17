@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: kafka-cluster-producer-tests
+  namespace: kafka-mwt
   labels:
     app: mesosphere-load-tests
 spec:
@@ -47,6 +48,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: kafka-cluster-consumer-tests
+  namespace: kafka-mwt
   labels:
     app: mesosphere-load-tests
 spec:
