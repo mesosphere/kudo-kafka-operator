@@ -1,5 +1,37 @@
 
 
+# MWT plan
+
+The MWT (mixed workload test) benchmark is designed to follow next steps:
+
+1. run a KUDO Kafka instance with these params: 
+    ```
+    BROKER_CPUS: "2000m"
+    BROKER_COUNT: "5"
+    BROKER_MEM: "4096m"
+    DISK_SIZE: "100Gi"
+    MIN_INSYNC_REPLICAS: "1"
+    NUM_IO_THREADS: "15"
+    NUM_NETWORK_THREADS: "10"
+    ADD_SERVICE_MONITOR: "true"
+    ``` 
+1. run deployment of 100 replicas of [consumer and producer workload](./mwt/workload-large/00-mwt-workload/workload.yaml)
+1. move to producer intensive workload 199 pods of producer pods and 1 pod of consumer workload 
+    ```
+    - reach to 6M msgs/sec
+    ```
+    <img src="./images/mwt-dashboard.png" width="1000">
+1. move to consumer intensive workload 199 pods of consumer pods and 1 pod of producer workload 
+    ```
+    - reach to 40G/sec of bytes out
+    ```
+    <img src="./images/bytes-out.png" width="600">
+
+
+# Automation of the MWT using KUTTL
+
+The above mentioned plan is automated using KUTTL 
+
 ## Prerequisites
 
 - Kubernetes cluster up
