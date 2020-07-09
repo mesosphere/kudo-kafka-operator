@@ -103,7 +103,6 @@ func updateInstancesCount(ctx context.Context, name, namespace string, count int
 	log.Printf("Instance: %+v\n", instance)
 	params["BROKER_COUNT"] = strconv.Itoa(count)
 	instance.Spec.Parameters = params
-	instance.Spec.PlanExecution.PlanName = "deploy"
 
 	_, err = instancesClient.Update(ctx, instance, metav1.UpdateOptions{})
 	if err != nil {
@@ -137,7 +136,6 @@ func updateInstanceParams(ctx context.Context, name, namespace string, mapParam 
 		params[k] = v
 	}
 	instance.Spec.Parameters = params
-	instance.Spec.PlanExecution.PlanName = "deploy"
 
 	_, err = instancesClient.Update(ctx, instance, metav1.UpdateOptions{})
 	if err != nil {
