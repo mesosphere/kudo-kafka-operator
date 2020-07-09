@@ -53,5 +53,5 @@ func (c *KubernetesTestClient) CreateTLSCertSecret(namespace, secretName, common
 		},
 	}
 
-	return c.CoreV1().Secrets(namespace).Create(c.ctx, secret, metav1.CreateOptions{})
+	return c.CoreV1().Secrets(namespace).Create(c.Ctx, secret, metav1.CreateOptions{})
 }
