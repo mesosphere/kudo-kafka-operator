@@ -7,7 +7,7 @@ kafka_repo_root="$(realpath "$(dirname "$0")")"
 vendor_dir="${kafka_repo_root}/shared/vendor"
 operators_repo_root="$(realpath $1)"
 zk_operator_dir=${operators_repo_root}/repository/zookeeper/operator
-kafka_operator_dir=${operators_repo_root}/repository/kafka/operator
+kafka_operator_dir=${kafka_repo_root}/operator
 
 echo "Starting the tests with framework resources:"
 ls ${operators_repo_root}
@@ -45,3 +45,6 @@ docker run --rm \
 	-v ${kafka_repo_root}:${kafka_repo_root} \
 	${DOCKER_IMAGE} \
 	bash -c ${kafka_repo_root}/tests/run.sh
+
+cd ${kafka_repo_root}/kuttl-tests
+DS_KUDO_VERSION=${DS_KUDO_VERSION} ./run.sh
