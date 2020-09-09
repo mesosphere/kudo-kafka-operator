@@ -28,10 +28,6 @@ docker run --rm \
 	${DOCKER_IMAGE} \
 	bash -c ${kafka_repo_root}/images/kafka/kafka-connectors-setup/run-tests.sh
 
-cd ${kafka_repo_root}/kuttl-tests
-DS_KUDO_VERSION=${DS_KUDO_VERSION} ./run.sh
-cd ${kafka_repo_root}
-
 # run KUDO Kafka integration tests
 docker run --rm \
 	-w ${kafka_repo_root}/tests \
