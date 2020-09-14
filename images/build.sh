@@ -66,7 +66,7 @@ if [[ "${BUILD_CRUISE}" == "true" ]]; then
     -t mesosphere/cruise-control:${CRUISE_CONTROL_TAG_VERSION} ./cruise-control
 fi
 if [[ "${BUILD_SCALE}" == "true" ]]; then
-  docker image build -t mesosphere/kafka:workload ./scaletesting
+  docker image build -t mesosphere/kafka-workload:${KAFKA_TAG_VERSION} ./scaletesting
 fi
 
 if [[ "${PUSH_IMAGE}" == "true" ]]; then
@@ -77,7 +77,7 @@ if [[ "${PUSH_IMAGE}" == "true" ]]; then
     docker push mesosphere/kafka:${KAFKA_TAG_VERSION}
   fi
   if [[ "${BUILD_SCALE}" == "true" ]]; then
-    docker push mesosphere/kafka:workload
+    docker push mesosphere/kafka-workload:${KAFKA_TAG_VERSION}
   fi
 else
   echo "Image built successfully."
