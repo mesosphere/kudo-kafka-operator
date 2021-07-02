@@ -535,7 +535,7 @@ parameters:
   - name: DEFAULT_REPLICATION_FACTOR
     displayName: "default.replication.factor"
     description: "Default replication factors for automatically created topics"
-    default: "1"
+    default: "3"
     trigger: "update-instance"
   - name: EXTERNAL_ADVERTISED_LISTENER
     displayName: "Enable external advertised listeners"
