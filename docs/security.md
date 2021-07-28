@@ -90,9 +90,10 @@ Kerberos authentication relies on a central authority to verify that Kafka clien
 
 The KUDO Kafka service requires a Kerberos principal for each broker to be deployed. Each principal must be of the form
 ```
-<service primary>/kafka-instance-kafka-<broker index>.kafka-svc.<namespace>.svc.cluster.local@<service realm>
+<service primary>/<instance name>-kafka-<broker index>.<instance name>-svc.<namespace>.svc.cluster.local@<service realm>
 ```
 with:
+* ```instance name = value for --instance flag used in kudo install kafka; defaults to "kafka-instance" ```
 * ```service primary = KERBEROS_PRIMARY```
 * ```broker index = 0 up to BROKER_COUNT - 1```
 * ```namespace = kubernetes namespace```
@@ -114,9 +115,9 @@ $ kubectl kudo install kafka \
 ```
 then the principals to create would be:
 ```
-kafka/kafka-instance-kafka-0.kafka-svc.kudo-kafka.svc.cluster.local@LOCAL
-kafka/kafka-instance-kafka-1.kafka-svc.kudo-kafka.svc.cluster.local@LOCAL
-kafka/kafka-instance-kafka-2.kafka-svc.kudo-kafka.svc.cluster.local@LOCAL
+kafka/kafka-instance-kafka-0.kafka-instance-svc.kudo-kafka.svc.cluster.local@LOCAL
+kafka/kafka-instance-kafka-1.kafka-instance-svc.kudo-kafka.svc.cluster.local@LOCAL
+kafka/kafka-instance-kafka-2.kafka-instance-svc.kudo-kafka.svc.cluster.local@LOCAL
 ```
 
 Use `KERBEROS_USE_TCP=true` parameter to use `TCP` protocol for KDC. By default it will try to use UDP. 
@@ -125,7 +126,7 @@ Use `KERBEROS_USE_TCP=true` parameter to use `TCP` protocol for KDC. By default 
 The KUDO Kafka service uses a keytab containing all node principals (service keytab). After creating the principals above, generate the service keytab making sure to include all the node principals. This should be stored as a secret in the Kubernetes Secret Store using `base64` encoding.
 
 ```
-kubectl create secret generic kdc --from-file=./kafka.keytab
+kubectl create secret generic base64-kafka-keytab-secret --from-file=./kafka.keytab
 ```
 :warning: The KUDO Kafka assume the key in the secret to be `kafka.keytab`
 
