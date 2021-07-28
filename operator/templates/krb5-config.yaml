@@ -13,5 +13,7 @@ data:
 
     [realms]
     {{ .Params.KERBEROS_REALM }} = {
+    {{ if .Params.KERBEROS_KDC_HOSTNAME }}
     kdc = {{ .Params.KERBEROS_KDC_HOSTNAME }}:{{ .Params.KERBEROS_KDC_PORT }}
+    {{ end }}
     }
