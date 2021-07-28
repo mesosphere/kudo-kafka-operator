@@ -11,7 +11,7 @@ data:
     chmod +x health-check.sh;
 
     {{ if eq .Params.KERBEROS_ENABLED "true" }}
-    cat /kafka-keytab/kafka.keytab | base64 --decode > kafka.keytab;
+    cp /kafka-keytab/kafka.keytab $KAFKA_HOME/kafka.keytab;
     cp /jass-config/kafka_server_jaas.conf $KAFKA_HOME/config/kafka_server_jaas.conf;
     cp /krb5-config/krb5.conf $KAFKA_HOME/config/krb5.conf;
     sed -i "s/<HOSTNAME>/$(hostname -f)/g" $KAFKA_HOME/config/kafka_server_jaas.conf;
@@ -81,6 +81,8 @@ data:
     listener.name.client.scram-sha-512.sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required;
     EOF
     )
+      elif [[ "$LISTENER_SECURITY_PROTOCOL_MAP" = "INTERNAL:SASL_PLAINTEXT" ]]; then
+        LISTENER_SECURITY_PROTOCOL_MAP="${LISTENER_SECURITY_PROTOCOL_MAP},CLIENT:SASL_PLAINTEXT"
       else
         LISTENER_SECURITY_PROTOCOL_MAP="${LISTENER_SECURITY_PROTOCOL_MAP},CLIENT:PLAINTEXT"
       fi
